@@ -271,9 +271,21 @@ services:
     image: uops:dev
     container_name: uops-syslog
     depends_on:
-      # Not on the server, for the same reason as the poller: they share a database and
-      # neither calls the other.
       migrate: { condition: service_completed_successfully }
+      # And on the server being *healthy*, which is new. The old comment here said "not on
+      # the server, for the same reason as the poller: they share a database and neither
+      # calls the other" — true about calls, and the dependency is not a call. It is data:
+      # every listener names a tenant, and the tenant is created by the server's first run,
+      # not by `migrate`.
+      #
+      # Without this the collectors started in parallel with the server, found no tenant,
+      # refused to start, and were restarted forever — "the listener file names tenant
+      # \"example\", which does not exist", once a second. `restart: unless-stopped` meant
+      # they eventually won, so whether the stack came up was a race: on 2026-09-24 `flow`
+      # made it and `syslog` and `otlp` did not. The server's healthcheck answers
+      # /api/v1/health, which it only does after the first run has completed, so it is
+      # exactly the right condition.
+      server: { condition: service_healthy }
     ports:
       # The well-known ports on the outside, high ports on the inside. Binding below 1024
       # needs CAP_NET_BIND_SERVICE, which is one more thing to get right on every host --
@@ -325,6 +337,9 @@ services:
     container_name: uops-otlp
     depends_on:
       migrate: { condition: service_completed_successfully }
+      # A listener names a tenant and the server's first run creates it — see the syslog
+      # service above for what went wrong without this.
+      server: { condition: service_healthy }
     ports:
       # 4318 is OTLP/HTTP's conventional port and is above 1024, so unlike syslog's 514
       # it needs no capability and maps straight through.
@@ -369,6 +384,9 @@ services:
     container_name: uops-flow
     depends_on:
       migrate: { condition: service_completed_successfully }
+      # A listener names a tenant and the server's first run creates it — see the syslog
+      # service above for what went wrong without this.
+      server: { condition: service_healthy }
     ports:
       # One UDP socket for all four protocols — NetFlow v5 and v9, IPFIX and sFlow — because
       # every one of them arrives over UDP and the first bytes say which it is. 2055 is

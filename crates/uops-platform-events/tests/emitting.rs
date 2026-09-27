@@ -200,14 +200,45 @@ async fn a_failed_run_resolves_from_its_tenant_to_its_own_resource() {
         .expect("the owning organization nominated a resource");
     assert_eq!(resolved_org, org);
 
-    uops_platform_events::emit(&ch, target, event("Runbook run failed"))
+    // The summary carries this test's own tenant id, and both assertions below filter on
+    // it. Counting *everything* on the resource is what they used to do, and it is racy:
+    // `a_lease_change_reaches_every_installation` calls `emit_to_all`, which fans out to
+    // every nominated platform tenant in the database — including the two this test just
+    // nominated, because the tests share a database and run in parallel. So `mine` can
+    // legitimately carry a second event that this test did not emit, and `theirs` can
+    // legitimately be non-empty.
+    //
+    // It failed in CI on 2026-09-24 with `left: 2, right: 1`, on the first run of the
+    // workspace suite that CI has ever completed. It had passed locally every time, and
+    // probably became likely when `emit_to_all` was batched into one insert earlier the
+    // same day — 800x faster, so far more likely to land inside another test's window.
+    // The property being tested is unchanged: one customer's runbook failure reaches that
+    // customer's installation resource and no other.
+    let marker = format!("Runbook run failed {}", ordinary.into_uuid().simple());
+    uops_platform_events::emit(&ch, target, event(&marker))
         .await
         .expect("emit");
 
-    assert_eq!(events_on(&mine).await.len(), 1);
+    let mine_has: Vec<_> = events_on(&mine)
+        .await
+        .into_iter()
+        .filter(|(_, _, _, summary)| summary == &marker)
+        .collect();
+    assert_eq!(
+        mine_has.len(),
+        1,
+        "this test's event should be on its own organization's resource exactly once: \
+         {mine_has:?}"
+    );
+
+    let theirs_has: Vec<_> = events_on(&theirs)
+        .await
+        .into_iter()
+        .filter(|(_, _, _, summary)| summary == &marker)
+        .collect();
     assert!(
-        events_on(&theirs).await.is_empty(),
+        theirs_has.is_empty(),
         "one customer's runbook failure must never appear on another customer's \
-         installation resource"
+         installation resource: {theirs_has:?}"
     );
 }
