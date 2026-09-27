@@ -67,7 +67,7 @@ pub struct Smtp {
 impl Smtp {
     /// Read a channel's `config`.
     ///
-    /// `{"host": "smtp.internal", "port": 25, "from": "veyronis@example.com",
+    /// `{"host": "smtp.internal", "port": 25, "from": "alerts@example.com",
     ///   "to": ["ops@example.com"]}`
     ///
     /// # Errors
@@ -149,7 +149,7 @@ impl Smtp {
 
         // The name this server calls itself. A smarthost that cares about it is one that
         // is checking its own allow-list, and it is checking the address rather than this.
-        say(&mut write, "EHLO veyronis").await?;
+        say(&mut write, "EHLO uops").await?;
         expect(&mut reader, 250, "EHLO").await?;
 
         say(&mut write, &format!("MAIL FROM:<{}>", self.from)).await?;
@@ -210,7 +210,7 @@ impl Smtp {
         // Stable per alert episode and phase, so a relay that deduplicates does not
         // collapse a firing and its resolution into one thread entry.
         out.push_str(&format!(
-            "Message-ID: <{}.{}@veyronis>\r\n",
+            "Message-ID: <{}.{}@uops>\r\n",
             notification.at.timestamp_millis(),
             notification.rule_id.simple()
         ));
@@ -357,7 +357,7 @@ mod tests {
     fn channel() -> Smtp {
         Smtp::from_config(&serde_json::json!({
             "host": "smtp.internal",
-            "from": "veyronis@example.com",
+            "from": "alerts@example.com",
             "to": ["ops@example.com", "oncall@example.com"]
         }))
         .expect("a valid channel")
@@ -389,7 +389,7 @@ mod tests {
         assert!(
             Smtp::from_config(&serde_json::json!({
                 "host": "smtp.internal",
-                "from": "veyronis@example.com",
+                "from": "alerts@example.com",
                 "to": []
             }))
             .is_err(),
@@ -403,14 +403,14 @@ mod tests {
         // its own, including a second Bcc.
         let injected = Smtp::from_config(&serde_json::json!({
             "host": "smtp.internal",
-            "from": "veyronis@example.com\r\nBcc: attacker@example.com",
+            "from": "alerts@example.com\r\nBcc: attacker@example.com",
             "to": ["ops@example.com"]
         }));
         assert!(injected.is_err(), "{injected:?}");
 
         let in_recipient = Smtp::from_config(&serde_json::json!({
             "host": "smtp.internal",
-            "from": "veyronis@example.com",
+            "from": "alerts@example.com",
             "to": ["ops@example.com\nBcc: attacker@example.com"]
         }));
         assert!(in_recipient.is_err(), "{in_recipient:?}");
@@ -431,7 +431,7 @@ mod tests {
             .expect("message");
 
         assert!(
-            message.contains("From: veyronis@example.com\r\n"),
+            message.contains("From: alerts@example.com\r\n"),
             "{message}"
         );
         assert!(
@@ -518,7 +518,7 @@ mod tests {
             Smtp::from_config(&serde_json::json!({
                 "host": "smtp.internal",
                 "port": 0,
-                "from": "veyronis@example.com",
+                "from": "alerts@example.com",
                 "to": ["ops@example.com"]
             }))
             .is_err()

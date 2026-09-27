@@ -143,21 +143,29 @@ purpose.
 
 ## Name
 
-The product is **Veyronis** — *Unified Infrastructure Observability & Operations
-Platform*.
+The product is **Oculex** — *Unified Infrastructure Observability & Operations Platform*.
+*Oculus* + *-ex*: the eye, which is what the product does — one resource identity sees and
+correlates every signal.
 
-`uops` is a **working codename** and everything in the tree still uses it: the crates,
-the binaries, the `UOPS_*` variables, the databases, the Docker images and the NATS
-subjects. That is deliberate. The codename exists so the product name can change without
-touching code, and it just did — `Aegisora` was rejected (`aegisora-ai/aegisora` is an
-active org in an adjacent market) and replaced by `Veyronis` at the cost of eight lines
-of documentation.
+`uops` is a **working codename** and everything in the tree still uses it: the crates, the
+binaries, the `UOPS_*` variables, the databases, the Docker images and the NATS subjects.
+That is deliberate, and it has now paid for itself twice. **The product has been renamed
+twice and neither rename touched an identifier:** `Aegisora` was dropped 2026-09-16
+(`aegisora-ai/aegisora` is an active org in an adjacent market) for eight lines of
+documentation; `Veyronis` was dropped 2026-09-28 (`veyronis.com` is an active consultancy
+and *Varonis* is a registered mark in data security) for the prose in twenty-one files and
+one constant in `web/src/brand.tsx`.
 
-The identifiers rename to `veyronis-*` **at clearance** — GitHub org, crates.io, npm,
-`.com`/`.io`, USPTO TESS and Bangladesh RJSC — which is also the first moment the crates
-can be published. Doing it before would re-couple the tree to a name that has had a
-preliminary search rather than a clearance, and would touch persistent state including the
-key file that decrypts every stored credential. See [RENAME_AUDIT.md](./RENAME_AUDIT.md).
+**The name is still provisional**, and a free registry is not a clear trademark. `oculex` is
+free on npm, PyPI and crates.io — verified 2026-09-28 rather than assumed — and the only
+notable prior use is a pharmaceutical company acquired in 2003. Clearance needs a formal
+search: USPTO classes 9 and 42, EUIPO, and Bangladesh's DPDT.
+
+The identifiers rename to `oculex-*` **at clearance**, which is also the first moment the
+crates can be published. Doing it before would re-couple the tree to a name that has had a
+search rather than a clearance, and would touch persistent state including the key file that
+decrypts every stored credential. See [RENAME_AUDIT.md](./RENAME_AUDIT.md) and
+[NAME-DECISION-OCULEX.md](./NAME-DECISION-OCULEX.md).
 
 ## License
 

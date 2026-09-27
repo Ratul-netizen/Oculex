@@ -44,7 +44,7 @@ accessed 23 Sep 2026).
 
 **The market is telling us something precise: the portfolio is worth money and the
 fragmentation is the cost.** ManageEngine is retrofitting unity onto a family that grew
-apart. Veyronis has the unity and does not yet have the family.
+apart. Oculex has the unity and does not yet have the family.
 
 > **This is the strategy in one sentence: build the family ManageEngine has, on the
 > substrate ManageEngine is paying to retrofit.**
@@ -54,7 +54,7 @@ apart. Veyronis has the unity and does not yet have the family.
 Those five OpManager paid add-ons are a good definition of "a complete network operations
 product". Against them, checked in this repository today:
 
-| OpManager Nexus add-on | Veyronis |
+| OpManager Nexus add-on | Oculex |
 |---|---|
 | NetFlow Analyzer | **Already core** — `uops-collector-flow`, NetFlow/IPFIX/sFlow |
 | Applications Manager (APM) | **Already core** — OTLP traces, service map, service aggregates |
@@ -115,7 +115,7 @@ UI is treated in this document as product rather than as cleanup.
 A product family serves several buyers. It does not serve them all at once, and the
 sequencing of *buyers* matters more than the sequencing of features.
 
-| Buyer | Problem | Veyronis fit today |
+| Buyer | Problem | Oculex fit today |
 |---|---|---|
 | **Network operations in regulated/disconnected estates** | Multi-vendor estate, no SaaS permitted, must prove what happened | **Strong.** Nearly everything they need exists; NCM is the notable hole |
 | **MSP / shared-services** | Many estates, one console, per-client isolation and proof | **Good substrate, no packaging** — isolation exists and since 2026-09-24 a second estate can actually be created (`docs/tenant-lifecycle.md`); branded portal and cross-client reporting do not exist |
@@ -175,7 +175,7 @@ tour, and the demo does not require an apology.
 
 ### Stage 1 — network operations completeness (the family's first two modules)
 
-This is where Veyronis becomes a *complete network product* and reaches parity with
+This is where Oculex becomes a *complete network product* and reaches parity with
 OpManager Nexus on its own add-on list.
 
 **1a. NCCM — configuration backup, version history, diff, drift, compliance**
@@ -208,7 +208,7 @@ OpManager Nexus on its own add-on list.
 - **Evidence:** cheap enough that a lower bar is defensible — ≥3 interviews confirming they
   track addresses in a spreadsheet today (which is the common answer).
 
-**Exit gate for Stage 1:** Veyronis answers every question OpManager Nexus answers, in one
+**Exit gate for Stage 1:** Oculex answers every question OpManager Nexus answers, in one
 console, on one identity, with one licence.
 
 ### Stage 2 — choose *one* expansion, on evidence
@@ -302,11 +302,11 @@ different ground in each case, and the mistake is using one pitch for all three.
 ### Against Motadata specifically
 
 Motadata is the closest competitor: unified observability, five signals, on-prem capable,
-plus modules Veyronis lacks. Beating it needs specifics, not a better adjective.
+plus modules Oculex lacks. Beating it needs specifics, not a better adjective.
 
 | Ground | The argument | Honest status |
 |---|---|---|
-| **One identity, one query path** | Motadata's APM, RUM, SLO, NCCM are documented as *modules*. Veyronis's signals share one resource identity and one query AST — correlation is structural, not an integration | **True today.** The strongest claim available |
+| **One identity, one query path** | Motadata's APM, RUM, SLO, NCCM are documented as *modules*. Oculex's signals share one resource identity and one query AST — correlation is structural, not an integration | **True today.** The strongest claim available |
 | **Provable isolation** | Type-enforced tenant scope, adversarial test across all 68 routes | **True today.** Ask them to show theirs |
 | **Automation you can put in a change window** | Expiring approvals, dry runs that execute only read-only steps, rollback *offered* with the honest caveat, credentials absent from transcripts | **True today.** "Auto-remediation" is usually a script runner — make the comparison concrete |
 | **Evidence for assessors** | Rehearsed restore, read auditing, break-glass, self-monitoring | **True today — but read auditing was only half true when this was written.** The rows existed and nothing could read them; corrected 24 Sep, see §14 |
@@ -331,7 +331,7 @@ portfolio product that path crosses two or three consoles.
 
 ### Against assembled stacks (Zabbix + Prometheus/Grafana/Loki)
 
-**This is the real incumbent in disconnected estates** and the most common thing a Veyronis
+**This is the real incumbent in disconnected estates** and the most common thing a Oculex
 deal displaces. It is also the opponent least addressed by feature comparisons.
 
 They have collection, storage and dashboards. **What they do not have, and cannot assemble,

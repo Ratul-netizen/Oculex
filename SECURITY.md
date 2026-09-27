@@ -6,7 +6,7 @@ Report privately through GitHub's [Security Advisories][advisories] on this repo
 *Security* → *Report a vulnerability*. That opens a channel only the maintainers can see,
 and it is the fastest route.
 
-[advisories]: https://github.com/Ratul-netizen/veyronis/security/advisories/new
+[advisories]: https://github.com/Ratul-netizen/Oculex/security/advisories/new
 
 ---
 

@@ -7,7 +7,7 @@
 
 ## 1. Product decision
 
-Veyronis already has a 2D topology screen and a lazy-loaded Three.js 3D mode. The current
+Oculex already has a 2D topology screen and a lazy-loaded Three.js 3D mode. The current
 3D mode is structurally correct: it keeps the 2D layout coordinates, uses height for graph
 hop distance, labels weak ARP edges as dashed, selects rather than navigates, has no permanent
 render animation, and is not shipped to users who never open it.
@@ -451,7 +451,7 @@ Check at desktop, NOC distance mode once it exists, laptop, and reduced-motion/k
 - Generic models are helpful at a glance and do not make unsupported vendor/physical claims.
 - 3D is optional, lazy, deterministic, and does not degrade 2D use.
 - Selected-device exploration has a clear operational purpose and direct next actions.
-- Evidence/sampling/status semantics match the rest of Veyronis.
+- Evidence/sampling/status semantics match the rest of Oculex.
 - Tests cover the pure decisions and the browser path; visual QA covers representative estates.
 - Documentation explains what 3D height, model shape, edge style, and device ports do—and do not—mean.
 

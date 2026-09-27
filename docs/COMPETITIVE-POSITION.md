@@ -40,7 +40,7 @@ matters most and is the part not yet done.
    cheapest competitive action available and should happen before any outside party reads
    the repo again.**
 
-2. **Veyronis cannot win on breadth and should stop measuring itself that way.** Motadata
+2. **Oculex cannot win on breadth and should stop measuring itself that way.** Motadata
    documents dedicated modules for APM, RUM, SLO, NCCM, ITSM, MSP portals and AIOps. A
    solo-founder product reaching feature parity across that surface would be shallow
    everywhere. The screenshot-matching instinct is the single largest scope risk on this
@@ -71,7 +71,7 @@ matters most and is the part not yet done.
 
 **Recommended position statement:**
 
-> **Veyronis is unified network and infrastructure observability for estates that cannot
+> **Oculex is unified network and infrastructure observability for estates that cannot
 > send their telemetry to somebody else's cloud — and that have to prove what they did.**
 > Five signals on one resource identity, deployable air-gapped, with isolation, auditing,
 > restore and change-control evidence a procurement review can actually check.
@@ -112,17 +112,17 @@ an accusation. **Do not compete with the AI claim. Compete with the evidence sta
 
 ### 2.2 The rest of the field
 
-| Vendor | Shape | Relevance to Veyronis |
+| Vendor | Shape | Relevance to Oculex |
 |---|---|---|
 | **LogicMonitor** | SaaS-first, AI-first, hybrid/agentless breadth, strong MSP story | **Structurally cannot serve air-gapped buyers.** The clearest contrast case. |
 | **ScienceLogic (SL1 / Skylar)** | Service-operations, 400+ integrations, topology and business-service modelling, NCCM (Skylar Compliance) | Closest to the "prove the estate" buyer; reviews repeatedly cite complexity and tuning burden — an opening for a product that is simpler to stand up |
 | **Zabbix** | Free, open-source, self-hosted, very large installed base | **The real incumbent in air-gapped estates.** Beating it needs correlation and investigation quality, not feature count; its documented weaknesses are UI, reporting and non-expert usability |
 | **ManageEngine / rConfig / Infraon** | NCCM-centric point tools | Define the buyer's expectation of what config management means |
-| **Datadog / Grafana stack** | Cloud-native observability; Prometheus+Grafana+Loki is the default air-gapped answer today | The incumbent Veyronis actually displaces in disconnected estates — and it is an *assembly*, not a product, which is the wedge |
+| **Datadog / Grafana stack** | Cloud-native observability; Prometheus+Grafana+Loki is the default air-gapped answer today | The incumbent Oculex actually displaces in disconnected estates — and it is an *assembly*, not a product, which is the wedge |
 
 **The most important competitive fact in this table is not about Motadata.** In air-gapped
 and sovereignty-constrained estates the incumbent is Zabbix or a self-assembled
-Prometheus/Grafana/Loki stack. Those are the things a Veyronis deal actually replaces.
+Prometheus/Grafana/Loki stack. Those are the things a Oculex deal actually replaces.
 
 ---
 
@@ -131,7 +131,7 @@ Prometheus/Grafana/Loki stack. Those are the things a Veyronis deal actually rep
 Read from code and tests on 23 September 2026, not from `STATUS.md`. **Shipped** means
 implemented and covered by tests.
 
-| Area | Veyronis | Motadata | Note |
+| Area | Oculex | Motadata | Note |
 |---|---|---|---|
 | Network monitoring, SNMP, availability | **Shipped** | Yes | `uops-snmp`, `uops-poll`, `uops-poller` |
 | Discovery | **Shipped** | Yes | `uops-discover`, scheduler |
@@ -150,14 +150,14 @@ implemented and covered by tests.
 | ITSM / service desk / change | **Absent** | **Documented (full suite)** | ← decline |
 | Patch / endpoint management | **Absent** | Yes | ← decline |
 | Cloud provider integrations (AWS/Azure/K8s) | **Absent as dedicated integrations** | Yes | OTLP gives generic visibility only |
-| Multi-tenancy | **Shipped**, type-enforced | Yes, with branded MSP portals | Veyronis has isolation; Motadata has the *portal product* |
+| Multi-tenancy | **Shipped**, type-enforced | Yes, with branded MSP portals | Oculex has isolation; Motadata has the *portal product* |
 | SSO / OIDC | **Shipped** | Assumed | plus break-glass and `require SSO` |
 | HA / leases / rehearsed restore | **Shipped** | Not established | genuine procurement asset |
 | Read auditing | **Shipped** | Not established | genuine procurement asset |
 | Self-monitoring | **Shipped** (sign-ins; collector/lease/run events open) | Assumed | |
 | AI | **Absent** (M13) | Marketing | do not chase |
 
-**Veyronis's strongest existing advantages**, in order of how hard they are to copy:
+**Oculex's strongest existing advantages**, in order of how hard they are to copy:
 
 1. **One resource identity and one query AST across all five signals.** Competitors that
    grew by acquisition or module cannot retrofit this. It is the architectural bet and it

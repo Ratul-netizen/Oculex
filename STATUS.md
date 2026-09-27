@@ -1,6 +1,6 @@
 # Status — pick up from here
 
-Last updated: 2026-09-25 · repo: `github.com/Ratul-netizen/veyronis`
+Last updated: 2026-09-25 · repo: `github.com/Ratul-netizen/Oculex`
 
 ## Pick up here — 2026-09-25
 
@@ -42,7 +42,7 @@ one uncovering the next:
    every caller a test, and a config surface that cannot express a retired key. Agreed next
    step is a decision document before code.
 3. **`v0.1.0` is not published.** Needs a GitHub *Release* from
-   `github.com/Ratul-netizen/veyronis/releases/new` with tag `v0.1.0` — `ci.yml` triggers on
+   `github.com/Ratul-netizen/Oculex/releases/new` with tag `v0.1.0` — `ci.yml` triggers on
    `release: types: [published]`, so a bare `git push --tags` and a saved draft both fire
    nothing. `release-artefacts` has never run. Now that `gh` is here: `gh release create v0.1.0`.
 4. **The repository is still public.** Making it private starts metering Actions minutes, and
@@ -382,8 +382,8 @@ Counts are tests that actually run, per crate, from `cargo test --all-targets`.
 | **UI · the mark** | ✅ letterform-free, so it survives the rename below |
 | **UI · installable on any device** | ✅ web app manifest, icons at 192/512/180 — one build, phone home screen to NOC wall. No service worker, deliberately: a console showing cached state is worse than one that says it cannot reach the server |
 | UI · a native desktop shell | ⬜ **decided: Tauri, not Electron, and a window rather than a second UI** — [`docs/UI-SPEC.md`](./docs/UI-SPEC.md) §9a |
-| **Brand clearance: `Veyronis` has a conflict** | ⬜ **`veyronis.com` is an active software consultancy**, and *Varonis Systems* holds a registered US mark (4592747) in an adjacent field. A rename is likely; the branding rule means it costs documentation, not code |
-| Naming: first-pass screen done | ⬜ Rejected on conflicts: *Veyronis*, *Sentryl*, *Lumenwatch*, *Corvane*, *Helvara*. Clear so far: **Northwarden**. A screen is not clearance — the checklist in SPEC's branding rule still applies |
+| **Brand clearance: `Oculex`** | ⬜ Renamed from `Veyronis` on 2026-09-28, because `veyronis.com` is an active software consultancy and *Varonis Systems* holds a registered US mark (4592747) in an adjacent field. `oculex` is free on npm, PyPI and crates.io — checked, all 404 — and the only notable prior use is a pharmaceutical company acquired in 2003. **Still not cleared**: a free registry is not a trademark. USPTO classes 9 and 42, EUIPO, Bangladesh DPDT. The rename cost documentation and one constant, not code, which is what the branding rule is for |
+| Naming: screens done twice | ⬜ Rejected on conflicts: *Aegisora*, *Veyronis*, *Panoptex* (registered US mark, serial 87486930), *Sentryl*, *Lumenwatch*, *Corvane*, *Helvara*, and the mythic watchers — *Heimdall, Argus, Panoptes, Muninn, Huginn, Yggdrasil, Mimir, Aegis* — which are taken across the registries. *Nullhawk* belongs to the sibling project. Chosen: **Oculex**. A screen is not clearance — the checklist in SPEC's branding rule still applies |
 | **M5 — all 12 acceptance criteria met** | ✅ [`docs/M5-discovery.md`](./docs/M5-discovery.md) |
 | `uops-discover` · `uops-sweeper` | ✅ CIDR sweep, SNMP classification, LLDP/CDP/ARP neighbours, the scheduler that runs them |
 | **M6 · topology** | ✅ the `connected_to` graph, impact analysis, the topology screen — edges are evidence from a device naming its neighbour, never drawn by hand |
@@ -437,7 +437,7 @@ Counts are tests that actually run, per crate, from `cargo test --all-targets`.
 ## Resume in three commands
 
 ```bash
-git clone https://github.com/Ratul-netizen/veyronis && cd veyronis
+git clone https://github.com/Ratul-netizen/Oculex && cd Oculex
 docker compose -f deploy/docker-compose.yml up -d postgres clickhouse
 bash scripts/db.sh migrate && bash scripts/ch.sh apply
 
@@ -1567,9 +1567,10 @@ A product fix, not a test fix. The test does what an operator does — decommiss
 site, removing a customer, or a retention job pruning stale resources are all bulk
 deletes against those same constraints.
 
-**The product is Veyronis; the code keeps the codename `uops` until clearance.**
-`Aegisora` had already been rejected in PLAN.md §1 — `aegisora-ai/aegisora` is an active
-org in an adjacent market — and `Veyronis` is the replacement.
+**The product is Oculex; the code keeps the codename `uops` until clearance.**
+`Aegisora` was rejected in PLAN.md §1 — `aegisora-ai/aegisora` is an active org in an
+adjacent market — and `Veyronis` replaced it, and was itself dropped on 2026-09-28 over
+`veyronis.com` and the *Varonis* mark. `Oculex` is the third.
 
 The audit is in [RENAME_AUDIT.md](./RENAME_AUDIT.md), and its headline is that the
 rename was **eight lines of documentation across four files**. Nothing else in the tree
@@ -1577,18 +1578,22 @@ ever contained the product name: not the 16 crates, not the binaries, not the 18
 `UOPS_*` variables, not the PostgreSQL role or database, not the ClickHouse database,
 not the Docker images, not the `uops.*` NATS subjects, not the npm package, not a
 migration identifier, not a test fixture. That is exactly what the codename was for, and
-it is the first time the bet has been tested.
+it is the first time the bet has been tested. **The second time cost no more:**
+`Veyronis` → `Oculex` was prose in twenty-one files and one constant in `web/src/brand.tsx`,
+plus the SMTP client, which had put the brand in an `EHLO` greeting and a `Message-ID`
+domain — the one place the rule had actually been broken, now saying `uops` like everything
+else.
 
-So the identifiers stay `uops-*`. The rename to `veyronis-*` happens in one commit **at
-clearance** — GitHub org, crates.io, npm, `.com`/`.io`, USPTO TESS classes 9 and 42,
-Bangladesh RJSC — which is also the first moment the crates can be published. Doing it
+So the identifiers stay `uops-*`. The rename to `oculex-*` happens in one commit **at
+clearance** — GitHub org, crates.io, npm, `.com`/`.io`, USPTO TESS classes 9 and 42, EUIPO,
+Bangladesh DPDT for the mark — which is also the first moment the crates can be published. Doing it
 now would re-couple the tree to a name that has had a preliminary search rather than a
 clearance, and would pay the cost twice if clearance fails. It also touches persistent
 state in a way the documentation rename does not: the database and role, the Docker
 volumes, and `UOPS_KEK_FILE`, which points at the key that decrypts every stored
 credential. That migration gets written when it is worth writing.
 
-**The repository is now `github.com/Ratul-netizen/veyronis`.** Renamed by hand — `gh` is
+**The repository is now `github.com/Ratul-netizen/Oculex`.** Renamed by hand on 2026-09-28, from `veyronis`, which was itself renamed from `aegisora` — `gh` is
 not installed here and it needs repo-admin credentials. The four URLs in `Cargo.toml` and
 this file followed in the same commit, `origin` was re-pointed, and a `git fetch` against
 the new URL confirms it. GitHub keeps a redirect from the old name, so an existing clone
@@ -1746,7 +1751,7 @@ fixing something by hand.
 | [PLAN.md](./PLAN.md) | strategy |
 | [SPEC.md](./SPEC.md) | the M0–M4 implementation spec, and the branding rule |
 | [REVIEW.md](./REVIEW.md) | the architecture review gate: what must change before M4, what waits, what still blocks |
-| [RENAME_AUDIT.md](./RENAME_AUDIT.md) | Aegisora → Veyronis, and why the code keeps `uops` |
+| [RENAME_AUDIT.md](./RENAME_AUDIT.md) | Aegisora → Veyronis → Oculex, and why the code keeps `uops` |
 | [docs/UI.md](./docs/UI.md) | the UI direction — cockpit, context mode, investigation workspace, 2D/3D topology |
 | [docs/UI-SPEC.md](./docs/UI-SPEC.md) | the UI contract: tokens, the semantic five, what colour may and may not carry |
 | [docs/M5-discovery.md](./docs/M5-discovery.md) | M5's decisions, closed before anything was built |

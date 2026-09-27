@@ -537,7 +537,7 @@ async fn an_email_channel_is_accepted_and_a_useless_one_is_refused() {
                 "kind": "email",
                 "config": {
                     "host": "smtp.internal",
-                    "from": "veyronis@example.com",
+                    "from": "alerts@example.com",
                     "to": ["ops@example.com"]
                 }
             }),
@@ -553,7 +553,7 @@ async fn an_email_channel_is_accepted_and_a_useless_one_is_refused() {
             &serde_json::json!({
                 "name": "nobody",
                 "kind": "email",
-                "config": { "host": "smtp.internal", "from": "veyronis@example.com" }
+                "config": { "host": "smtp.internal", "from": "alerts@example.com" }
             }),
         ))
         .await;
@@ -569,7 +569,7 @@ async fn an_email_channel_is_accepted_and_a_useless_one_is_refused() {
                 "kind": "email",
                 "config": {
                     "host": "smtp.internal",
-                    "from": "veyronis@example.com",
+                    "from": "alerts@example.com",
                     "to": ["ops@example.com
             Bcc: attacker@example.com"]
                 }

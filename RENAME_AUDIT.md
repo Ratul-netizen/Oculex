@@ -1,9 +1,12 @@
-# Rename audit — Aegisora → Veyronis
+# Rename audit — Aegisora → Veyronis → Oculex
 
-Phase 1 audit, and the decision taken from it.
+Last updated: 2026-09-28 · **Decided: product name is `Oculex`; code keeps the codename
+`uops` until clearance.**
 
-Last updated: 2026-09-16 · **Decided: product name is `Veyronis`; code keeps the
-codename `uops` until clearance.**
+Two renames now. The tables below are the Phase 1 audit for the first one and are left as
+written — they say `Veyronis` because that is what they concluded, and rewriting a record of
+a decision to match the next decision destroys the thing that makes it a record. §Second
+rename, at the end, covers 2026-09-28.
 
 ---
 
@@ -161,3 +164,48 @@ Operations Platform`.
 - Did not rename crates, env vars, database identifiers or Docker volumes — see the
   decision section above.
 - Did not rewrite git history or force-push anything.
+
+---
+
+## Second rename: Veyronis → Oculex, 2026-09-28
+
+**Why.** `veyronis.com` is an active software consultancy, and *Varonis Systems* holds a
+registered US mark (4592747) in data security — an adjacent field with the same buyer, which
+is the worse of the two problems. `web/src/brand.tsx` had recorded both on 2026-09-17 and
+said *"a rename is likely. Everything below is built to survive one."* It did.
+
+**The name.** `Oculex`, chosen by the owner and relayed in
+[NAME-DECISION-OCULEX.md](./NAME-DECISION-OCULEX.md). *Oculus* + *-ex*: the eye, which is
+this product's thesis — one resource identity sees and correlates every signal.
+
+**What was verified rather than taken on trust**, 2026-09-28: `oculex` returns 404 from
+npm, PyPI and crates.io. The only notable prior use is Oculex Pharmaceuticals, acquired by
+Allergan in 2003, defunct, ophthalmic drug delivery. **Not clearance.** A free registry is
+not a clear trademark, and the checklist in SPEC's branding rule still applies.
+
+**Two corrections to the handoff note**, recorded because acting on either would have cost
+something:
+
+* It prescribed a deep, case-aware rename of crate names and module paths, from the sibling
+  project's experience. **This repository needs none of that**, and the tables above are why:
+  the product name was never in an identifier. The sibling had to rename crates because it
+  had put its brand in them.
+* It said to search **India's MCA** *"since the owner is India-based"*. Every document here
+  says **Bangladesh** — PLAN, README, SPEC, STATUS and `docs/INTERNATIONAL-LAUNCH-RESEARCH.md`
+  — and `India` appears in the tracked tree only inside IEEE OUI address data. MCA is also a
+  *company* registry rather than a trademark one. For the mark: USPTO classes 9 and 42,
+  EUIPO, and Bangladesh's **DPDT**; RJSC is for incorporating.
+
+**What it cost.** Prose in twenty-one files, one constant — `PRODUCT` in
+`web/src/brand.tsx` — the `<title>` and the web manifest, and the repository URLs after the
+owner renamed `Ratul-netizen/veyronis` to `Ratul-netizen/Oculex` by hand. No crate, binary,
+`UOPS_*` variable, database, Docker image, NATS subject or migration changed. The mark needed
+no redrawing, because it is three strokes and a dot and has no letter in it — which was the
+reason given for drawing it that way.
+
+**One place the rule had actually been broken.** `crates/uops-notify/src/smtp.rs` put the
+product name in an `EHLO` greeting, a `Message-ID` domain, and the example addresses in its
+docs and tests — nine references. That is exactly what the branding rule exists to prevent:
+code coupled to a name that has now changed twice. `EHLO` and `Message-ID` now say `uops`,
+which is stable, and the examples are neutral, so a third rename will not touch that file
+either. Found by counting the occurrences before replacing them rather than after.

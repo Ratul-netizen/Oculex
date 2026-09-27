@@ -3,20 +3,29 @@
  *
  * # Why this file exists at all
  *
- * SPEC's branding rule: *"Veyronis is a provisional product brand. No product-facing
- * identifier may be used as a persistence, crate, database, environment-variable, Docker
- * image or encryption identifier until brand clearance is complete. Product-facing
- * surfaces — README, documentation, the UI, marketing — say Veyronis. Everything in the
- * tree says `uops`."*
+ * SPEC's branding rule: *"the product brand is provisional. No product-facing identifier
+ * may be used as a persistence, crate, database, environment-variable, Docker image or
+ * encryption identifier until brand clearance is complete. Product-facing surfaces —
+ * README, documentation, the UI, marketing — say the product name. Everything in the tree
+ * says `uops`."*
  *
  * The UI is a product-facing surface, so it is allowed to say the name — and the name is
- * kept in exactly one constant here so that saying it costs one line to change. That is
- * not hypothetical: the product was called *Aegisora* until 2026-09-16, and renaming it
- * touched eight lines of documentation and no code.
+ * kept in exactly one constant here so that saying it costs one line to change.
  *
- * As of 2026-09-17 the provisional name has a known conflict — `veyronis.com` is an
- * active software consultancy, and *Varonis* is a registered mark in an adjacent field —
- * so a rename is likely. Everything below is built to survive one.
+ * **That has now happened twice.** *Aegisora* until 2026-09-16, renamed for eight lines of
+ * documentation and no code. *Veyronis* until 2026-09-28, renamed for the reason this file
+ * recorded at the time: `veyronis.com` is an active software consultancy and *Varonis* is a
+ * registered mark in an adjacent field. Two renames, no code touched either time, which is
+ * the whole return on keeping `uops` in the tree.
+ *
+ * **Oculex** is the third, and is provisional for the same reason the others were. `oculex`
+ * is free on npm, PyPI and crates.io — all three 404 as of 2026-09-28, checked rather than
+ * taken on trust. The only notable prior use is Oculex Pharmaceuticals, acquired by Allergan
+ * in 2003 and defunct, in a different industry entirely. **A free registry is not a clear
+ * trademark**: clearance still needs a formal search, and for this owner that is Bangladesh's
+ * DPDT alongside USPTO and EUIPO — not India's MCA, which the handoff note that carried this
+ * decision suggested and which is both the wrong country and a company registry rather than a
+ * trademark one.
  *
  * # Why the mark has no letter in it
  *
@@ -35,7 +44,7 @@
  *
  * One constant. See the module docs for why.
  */
-export const PRODUCT = "Veyronis";
+export const PRODUCT = "Oculex";
 
 /**
  * The mark: three signals converging on one resource.

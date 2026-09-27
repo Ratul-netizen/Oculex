@@ -113,25 +113,46 @@ and the M0–M4 scope.
 
 ## 1. Naming
 
-The product name is **Veyronis** — *Unified Infrastructure Observability & Operations
-Platform*.
+The product name is **Oculex** — *Unified Infrastructure Observability & Operations
+Platform*. Decided by the owner 2026-09-28. *Oculus* + *-ex*: the eye, which is the product's
+thesis — one resource identity sees and correlates every signal.
 
-`aegisora-ai/aegisora` is an active GitHub org doing AI runtime security and governance — adjacent
-market, same buyer. **Do not use Aegisora.** That rejection is kept here rather than deleted,
-because without it somebody proposes the name again.
+**Two names have been rejected, and the rejections are kept here rather than deleted, because
+without them somebody proposes them again.**
 
-No variants: not `Veyron`, `VeyronOS`, `Veyronis AI` or `Veyronis NMS`. The product is
-`Veyronis` and the CLI is `veyronis`.
+* **Aegisora** — `aegisora-ai/aegisora` is an active GitHub org doing AI runtime security and
+  governance: adjacent market, same buyer. Dropped 2026-09-16.
+* **Veyronis** — `veyronis.com` is an active software consultancy, and *Varonis* is a
+  registered mark in an adjacent field (data security), which is the worse of the two
+  problems. Dropped 2026-09-28.
+* **Panoptex** — thematically ideal and **unusable**: *Panoptex Technologies* holds a
+  registered US mark, serial 87486930. Never propose it.
+* **Nullhawk** — belongs to the sibling project (the offensive-security workbench formerly
+  *Hexora*). Keep the two distinct.
+* Mythic watchers — *Heimdall, Argus, Panoptes, Muninn, Huginn, Yggdrasil, Mimir, Aegis* —
+  are taken across the registries, and Grafana Mimir is literally a metrics database.
 
-**Clearance has not been done.** The search behind `Veyronis` was preliminary. Clearance =
-GitHub org + crates.io + npm + `.com`/`.io` + USPTO TESS classes 9 and 42 + Bangladesh RJSC if
-incorporating locally.
+No variants: not `Ocule`, `OculexOS`, `Oculex AI` or `Oculex NMS`. The product is `Oculex` and
+the CLI is `oculex`.
+
+**Clearance has not been done**, and a free registry is not a clear trademark. What *is*
+verified, by checking rather than by trust, 2026-09-28: `oculex` returns 404 on npm, PyPI and
+crates.io, and the only notable prior use is Oculex Pharmaceuticals — an ophthalmic
+drug-delivery company acquired by Allergan in 2003, defunct, and a different industry.
+
+Clearance = GitHub org + crates.io + npm + `.com`/`.io` + USPTO TESS classes 9 and 42 + EUIPO
++ **Bangladesh DPDT** for the mark, and **Bangladesh RJSC** only for incorporating. Those last
+two are different registries answering different questions, and the handoff note that carried
+this decision asked for India's MCA — wrong country, and a company registry rather than a
+trademark one. Everything in this repository says Bangladesh.
 
 **Code keeps the codename `uops` until clearance passes.** Decided 2026-09-16. Crates, binaries,
 the 18 `UOPS_*` variables, the PostgreSQL role and database, the ClickHouse database, the Docker
 images and the `uops.*` NATS subjects all stay as they are. This is what the codename was *for* —
-`Aegisora` → `Veyronis` cost eight lines of documentation and no code, because the product name was
-never baked into an identifier. Renaming them now would re-couple the tree to a name that has had a
+`Aegisora` → `Veyronis` cost eight lines of documentation and no code, and `Veyronis` →
+`Oculex` cost the prose in twenty-one files, one constant in `web/src/brand.tsx`, and no
+identifier — because the product name was never baked into one. Two renames have now paid for
+that decision. Renaming them now would re-couple the tree to a name that has had a
 search rather than a clearance, and pay the cost twice if clearance fails. It would also touch
 persistent state — the database, the Docker volumes and `UOPS_KEK_FILE`, which points at the key
 that decrypts every stored credential.

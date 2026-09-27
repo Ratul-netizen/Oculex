@@ -6,14 +6,15 @@ Revised: 2026-09-16
 
 ## Branding rule
 
-**Veyronis** is a provisional product brand. **`uops`** is the implementation codename.
+**Oculex** is a provisional product brand — the third, after *Aegisora* and *Veyronis*, both
+rejected on conflicts. **`uops`** is the implementation codename, and is not provisional.
 
 No product-facing identifier may be used as a persistence, crate, database,
 environment-variable, NATS subject, Docker image or encryption identifier until brand
 clearance is complete — GitHub org, crates.io, npm, `.com`/`.io`, USPTO TESS classes 9
 and 42, and Bangladesh RJSC if incorporating locally.
 
-Product-facing surfaces — README, documentation, the UI, marketing — say *Veyronis*.
+Product-facing surfaces — README, documentation, the UI, marketing — say *Oculex*.
 Everything in the tree says `uops`.
 
 This is not bookkeeping. It was measured: the product name changed from *Aegisora* to

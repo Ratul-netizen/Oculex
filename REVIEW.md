@@ -205,9 +205,9 @@ the document. Keep it.
 - **A second search index.** The escape hatch behind the Query AST is the right answer.
   Building it now would be paying for a problem the benchmark has not demonstrated.
 - **Two codebases for on-prem and hosted.** One core, two deployment profiles. The
-  review flagged the risk and it is worth restating: the moment there is a *Veyronis
-  Enterprise* and a *Veyronis Cloud* with separate trees, every feature costs twice.
-- **Renaming crates to `veyronis-*` before clearance.** Settled; see `RENAME_AUDIT.md`.
+  review flagged the risk and it is worth restating: the moment there is a *Oculex
+  Enterprise* and a *Oculex Cloud* with separate trees, every feature costs twice.
+- **Renaming crates to `oculex-*` before clearance.** Settled; see `RENAME_AUDIT.md`.
 
 ---
 
@@ -234,7 +234,7 @@ All of §M5+ above, plus three things that look foundational and are not:
 | ~~Licence~~ | — | **Closed 2026-09-16: AGPL-3.0-only plus a CLA, enabling commercial dual-licensing.** This review raised it because the recommendation was being enacted by default; it is now a decision. What remains is a *lawyer's review of `CLA.md`* before the repository is publicised — see the row below. The licence choice is reversible; accepting one unsigned contribution is not |
 | **The review queue has no way to say "no"** | the review-queue UI | A case leaves the queue only by being merged. An operator who decides two resources are genuinely different has no action; the question returns every day. Needs a dismissal outcome, a store method and a route — and a product decision about what "not the same" means for a provisional that already has telemetry attached |
 | **Tenant attribution for syslog** | the syslog daemon | A syslog message carries no tenant. Recommendation: a listener per tenant, address or port identifying it, with `create_provisional` for unknown senders. The alternative is an explicit sender→tenant allow-list that refuses unknown senders — a different security posture, so it is a decision rather than a default |
-| **Brand clearance for Veyronis** | crate publishing, not development | GitHub org, crates.io, npm, `.com`/`.io`, USPTO TESS classes 9 and 42, Bangladesh RJSC. Until then the code stays `uops-*` |
+| **Brand clearance for Oculex** | crate publishing, not development | GitHub org, crates.io, npm, `.com`/`.io`, USPTO TESS classes 9 and 42, Bangladesh RJSC. Until then the code stays `uops-*` |
 | **CLA reviewed by a lawyer** | accepting outside contributions | The only other irreversible item |
 
 ---
@@ -298,15 +298,15 @@ Ranked by what they cost if deferred:
 
 ## Branding rule — to be added to the top of SPEC
 
-> **Veyronis** is a provisional product brand. **`uops`** is the implementation codename.
+> **Oculex** is a provisional product brand. **`uops`** is the implementation codename.
 >
 > No product-facing identifier may be used as a persistence, crate, database,
 > environment-variable, NATS subject, Docker image or encryption identifier until brand
 > clearance is complete.
 >
-> Product-facing surfaces — README, documentation, the UI, marketing — say *Veyronis*.
+> Product-facing surfaces — README, documentation, the UI, marketing — say *Oculex*.
 > Everything in the tree says `uops`.
 
 This is what stops a future session coupling the brand to the architecture by accident.
 The cost of having done it correctly so far was measured this week: renaming *Aegisora* to
-*Veyronis* touched eight lines.
+*Oculex* touched eight lines.

@@ -141,7 +141,7 @@ fn channel(host: &str, port: u16) -> Smtp {
     Smtp::from_config(&serde_json::json!({
         "host": host,
         "port": port,
-        "from": "veyronis@example.com",
+        "from": "alerts@example.com",
         "to": ["ops@example.com", "oncall@example.com"]
     }))
     .expect("a valid channel")
@@ -162,7 +162,7 @@ async fn an_alert_reaches_a_relay_as_a_conversation_it_would_accept() {
     let commands: Vec<&str> = session.commands.iter().map(String::as_str).collect();
     assert!(commands[0].starts_with("EHLO"), "{commands:?}");
     assert_eq!(
-        commands[1], "MAIL FROM:<veyronis@example.com>",
+        commands[1], "MAIL FROM:<alerts@example.com>",
         "{commands:?}"
     );
     assert_eq!(commands[2], "RCPT TO:<ops@example.com>", "{commands:?}");
@@ -171,7 +171,7 @@ async fn an_alert_reaches_a_relay_as_a_conversation_it_would_accept() {
 
     // And the message itself is one a mail client can read.
     assert!(
-        session.message.contains("From: veyronis@example.com"),
+        session.message.contains("From: alerts@example.com"),
         "{}",
         session.message
     );

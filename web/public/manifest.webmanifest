@@ -1,6 +1,6 @@
 {
-  "name": "Veyronis",
-  "short_name": "Veyronis",
+  "name": "Oculex",
+  "short_name": "Oculex",
   "description": "Unified infrastructure observability: network, logs, metrics, traces, flows and topology over one resource identity.",
   "start_url": "/",
   "scope": "/",

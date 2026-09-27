@@ -12,7 +12,7 @@ ObserveOps, Netdata, Kentik and current 3D-topology products.
 
 ## The one-sentence philosophy
 
-> Veyronis should not look like "Grafana plus a 3D map". It should look like a
+> Oculex should not look like "Grafana plus a 3D map". It should look like a
 > purpose-built network-operations and observability cockpit, where 3D is used
 > selectively for topology and spatial context while the dashboard itself stays
 > information-dense, fast and operationally useful.
@@ -44,7 +44,7 @@ not neon borders and rotating panels, which stop being interesting in about four
 
 ```
 ╔══════════════════════════════╗
-║ V VEYRONIS                   ║
+║ V OCULEX                   ║
 ╠══════════════════════════════╣
 ║  ◉ Overview                  ║
 ║                              ║
@@ -115,7 +115,7 @@ flows and topology state all understand that window.
 
 ## 3. The default dashboard has to be good before anybody configures anything
 
-A user installs Veyronis, adds a few resources, and gets something useful immediately.
+A user installs Oculex, adds a few resources, and gets something useful immediately.
 Netdata makes this a selling point and it is the right instinct: a product whose first
 screen is empty has to be learned before it can be judged.
 
@@ -349,7 +349,7 @@ twelve, and a NOC wall is viewed from four metres away.
 Already fixed by SPEC: **React + TypeScript**. The rest:
 
 ```
-                 VEYRONIS UI
+                 OCULEX UI
                      │
        ┌─────────────┼─────────────┐
     Dashboard     Topology       Maps

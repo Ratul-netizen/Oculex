@@ -491,7 +491,7 @@ alert list, drifting, with the bug fixed in one of them. The shell is a window a
 icon; everything inside it is the web app.
 
 **A true single-host desktop install is not on the table**, and it is worth saying why: the
-server needs PostgreSQL and ClickHouse. "Install Veyronis on the ops laptop" means
+server needs PostgreSQL and ClickHouse. "Install Oculex on the ops laptop" means
 embedding both, and neither embeds. A single-node `docker compose up` is the small
 deployment story, and it already exists.
 

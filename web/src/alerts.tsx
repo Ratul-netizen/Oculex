@@ -604,7 +604,7 @@ export function ChannelsPage() {
                 <input
                   type="text"
                   value={from}
-                  placeholder="veyronis@example.com"
+                  placeholder="alerts@example.com"
                   onChange={(e) => setFrom(e.target.value)}
                 />
               </label>

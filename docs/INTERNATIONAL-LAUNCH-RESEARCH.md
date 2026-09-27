@@ -7,7 +7,7 @@
 
 ## 1. The decision to make now
 
-Veyronis should not launch as a general-purpose “all-in-one observability platform” or a self-serve Datadog alternative. A solo founder cannot credibly support that promise yet.
+Oculex should not launch as a general-purpose “all-in-one observability platform” or a self-serve Datadog alternative. A solo founder cannot credibly support that promise yet.
 
 Launch it as a focused B2B operational product:
 
@@ -51,7 +51,7 @@ The competitive lesson is not to reproduce every product. It is to identify the 
 
 ### Network / infrastructure operations products
 
-**PRTG** is a useful baseline for a practical NMS. Its current documentation presents SNMP interface counters, flow analysis, Cisco CBQoS, Cisco IP SLA, and a QoS Round Trip sensor for latency, jitter, loss, corruption, and duplication between probes. It also makes an operational constraint explicit: flow collection and active path tests require configuration or probes at the relevant points. Veyronis should be equally candid about measurement scope and sampling.  
+**PRTG** is a useful baseline for a practical NMS. Its current documentation presents SNMP interface counters, flow analysis, Cisco CBQoS, Cisco IP SLA, and a QoS Round Trip sensor for latency, jitter, loss, corruption, and duplication between probes. It also makes an operational constraint explicit: flow collection and active path tests require configuration or probes at the relevant points. Oculex should be equally candid about measurement scope and sampling.  
 Source: [PRTG network-performance documentation](https://www.paessler.com/monitoring/performance/network-performance-test-tool)
 
 **ManageEngine OpManager / NetFlow Analyzer** represents the “integrated NMS plus traffic analysis” buyer expectation: device health, flows, top talkers, applications, IP SLA, QoS/CBQoS reporting, capacity planning, and vendor configuration templates. Its flow add-on supports NetFlow, sFlow, J-Flow, IPFIX, cflowd, rFlow, NetStream, and Cisco NBAR.  
@@ -65,10 +65,10 @@ Source: [Datadog NetFlow monitoring](https://docs.datadoghq.com/network_monitori
 
 ### Full-stack observability products
 
-**Grafana** is a useful reference for the investigation model: metrics detect, logs provide context, traces show the request path, and profiles identify code-level cost. It explicitly presents correlation across signals as necessary for investigation. Veyronis should match the correlation principle, but should not attempt profiling or every Grafana data source before customer demand exists.  
+**Grafana** is a useful reference for the investigation model: metrics detect, logs provide context, traces show the request path, and profiles identify code-level cost. It explicitly presents correlation across signals as necessary for investigation. Oculex should match the correlation principle, but should not attempt profiling or every Grafana data source before customer demand exists.  
 Source: [Grafana telemetry and correlation](https://grafana.com/docs/enterprise-traces/latest/introduction/telemetry/)
 
-**Dynatrace** is the long-term ceiling, not an initial direct competitor. Its differentiator is topology-rich context with causation claims and automation across cloud/application/security data. Veyronis should take the design lesson—topology and context first—but preserve the current, more honest language: *likely origin/candidate*, with stated evidence, rather than unearned automated “root cause.”  
+**Dynatrace** is the long-term ceiling, not an initial direct competitor. Its differentiator is topology-rich context with causation claims and automation across cloud/application/security data. Oculex should take the design lesson—topology and context first—but preserve the current, more honest language: *likely origin/candidate*, with stated evidence, rather than unearned automated “root cause.”  
 Sources: [Dynatrace topology-aware correlation](https://docs.dynatrace.com/docs/analyze-explore-automate/explorer), [Dynatrace unified observability](https://www.dynatrace.com/news/blog/ai-driven-analytics-and-automation-for-unified-observability/)
 
 ### Positioning implication
@@ -87,7 +87,7 @@ This is narrower, clearer, and more sellable than “all observability.” It ca
 
 ## 4. QoS: add it, but split monitoring from control
 
-QoS is commercially relevant and fits Veyronis well. It must be implemented in two separately governed layers.
+QoS is commercially relevant and fits Oculex well. It must be implemented in two separately governed layers.
 
 ### 4.1 QoS visibility — recommended product scope
 
@@ -103,7 +103,7 @@ Build this first. It is observation, not a production network change:
 - QoS/SLA alerting: congestion, class drops, jitter/loss thresholds, policy mismatch, and sustained saturation.
 - Correlation: affected interfaces, flows, resources, services, and topology path in one investigation.
 
-PRTG’s implementation is a practical benchmark: it separates passive SNMP/flow visibility from active QoS path tests and Cisco IP SLA. It also states that sFlow is sampled and therefore approximate. Veyronis already uses an approximation mark for flow; retain that semantic in all sampled QoS views.  
+PRTG’s implementation is a practical benchmark: it separates passive SNMP/flow visibility from active QoS path tests and Cisco IP SLA. It also states that sFlow is sampled and therefore approximate. Oculex already uses an approximation mark for flow; retain that semantic in all sampled QoS views.  
 Source: [PRTG flow and QoS details](https://www.paessler.com/monitoring/performance/network-performance-test-tool)
 
 ### 4.2 QoS control — later, M10-class automation only
@@ -158,7 +158,7 @@ Before public SaaS, make one deployment path repeatable:
 
 ```text
 Customer environment
-  ├─ Veyronis control/data plane OR approved private cloud account
+  ├─ Oculex control/data plane OR approved private cloud account
   ├─ customer-local collector(s)
   └─ documented backup, update, recovery, and support procedure
 ```
@@ -167,7 +167,7 @@ The supportable unit is not a container image; it is a documented deployment plu
 
 ### Phase C — carefully bounded hosted service
 
-Offer hosted SaaS only after repeatable onboarding, logs/metrics for the product itself, backup restores, tenant isolation tests, status communications, and a defined support process exist. Customer networks should use outbound authenticated TLS from a customer-local collector to an ingestion endpoint; do not require broad inbound access from Veyronis Cloud into customer networks.
+Offer hosted SaaS only after repeatable onboarding, logs/metrics for the product itself, backup restores, tenant isolation tests, status communications, and a defined support process exist. Customer networks should use outbound authenticated TLS from a customer-local collector to an ingestion endpoint; do not require broad inbound access from Oculex Cloud into customer networks.
 
 ### Pricing structure
 
@@ -199,14 +199,14 @@ For early enterprise customers, invoices and bank transfer are often simpler and
 
 ### Brand and trademark
 
-Treat `Veyronis` as a temporary working name until professional clearance. The public name must be screened for confusingly similar marks and company/domain use in the actual intended markets, not merely searched once on the web. Bangladesh’s official DPDT search is one required part of that process; it is not global legal clearance.  
+Treat `Oculex` as a temporary working name until professional clearance. The public name must be screened for confusingly similar marks and company/domain use in the actual intended markets, not merely searched once on the web. Bangladesh’s official DPDT search is one required part of that process; it is not global legal clearance.  
 Source: [DPDT trademark search](https://dpdtbd.com/search)
 
 Keep `uops` in code until the decision passes clearance, as the repository strategy already states. A premature repository-wide rename creates operational risk around databases, secrets, images, volumes, and published identifiers without increasing customer value.
 
 ## 7. International privacy and data-residency baseline
 
-Veyronis will often process personal data even though it is an infrastructure product. Logs and telemetry can contain user names, email addresses, IP addresses, device identifiers, locations, URLs, authentication events, and application payloads. Treat the customer as the usual controller and Veyronis as processor only where the contractual and factual roles support that conclusion.
+Oculex will often process personal data even though it is an infrastructure product. Logs and telemetry can contain user names, email addresses, IP addresses, device identifiers, locations, URLs, authentication events, and application payloads. Treat the customer as the usual controller and Oculex as processor only where the contractual and factual roles support that conclusion.
 
 ### Product requirements now
 
@@ -279,7 +279,7 @@ Build a small but real control set:
 5. **Respond:** incident-response plan, severity model, contact list, tabletop exercise, post-incident review.
 6. **Recover:** restore tests, RTO/RPO targets stated per deployment type, disaster-recovery runbook, customer communications.
 
-CISA’s secure-by-design guidance is especially relevant because Veyronis holds powerful customer credentials and may later make authorized network changes. The guiding expectation is to make products secure by default and to put the security burden on the producer rather than on customers.  
+CISA’s secure-by-design guidance is especially relevant because Oculex holds powerful customer credentials and may later make authorized network changes. The guiding expectation is to make products secure by default and to put the security burden on the producer rather than on customers.  
 Source: [CISA Secure by Demand guide](https://www.cisa.gov/sites/default/files/2024-08/SecureByDemandGuide_080624_508c.pdf)
 
 ## 9. Evidence that enterprise buyers will ask for
