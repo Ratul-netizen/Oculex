@@ -1029,7 +1029,23 @@ jobs:
           echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc]             https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main"             | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
           sudo apt-get update -qq
           sudo apt-get install -y -qq postgresql-client-17
+
+          # Installing the package is not enough, which is how this step passed while the
+          # backup drill after it failed with "aborting because of server version mismatch:
+          # server version 17.11; pg_dump version 16.15". Ubuntu routes /usr/bin/pg_dump
+          # through postgresql-common's `pg_wrapper`, which went on choosing 16 with both
+          # installed — so the check above said "already 17" was false, the install
+          # succeeded, and `pg_dump` still reported 16.
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+          export PATH="/usr/lib/postgresql/17/bin:$PATH"
+
+          # And asserted, because a step that installs a tool without checking which one
+          # the next step will find is the thing that went wrong here.
           pg_dump --version
+          pg_dump --version | grep -q " 17" || {
+            echo "::error::pg_dump is still not 17 after installing postgresql-client-17;             the service container is postgres:17-alpine and pg_dump refuses a newer server"
+            exit 1
+          }
 
       - name: A backup restores to exactly what was backed up
         run: |

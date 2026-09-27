@@ -96,6 +96,25 @@ RUN apk add --no-cache ca-certificates libgcc openssl
 # as root is a finding in every procurement checklist this product will meet.
 RUN addgroup -S uops && adduser -S -G uops uops
 
+# The directories the compose file mounts named volumes over, created here and owned by the
+# user that has to write them.
+#
+# Docker initialises an empty named volume from whatever the image has at the mount point,
+# ownership included — and creates the mount point owned by **root** when the image has
+# nothing there. So a non-root container plus a fresh named volume is a directory the
+# process cannot write, which is not obvious from either half on its own.
+#
+# It was not obvious here either: `syslog` and `otlp` both exited with "the spill directory
+# /srv/spill is unusable: Permission denied (os error 13)" and were restarted forever.
+# `flow` came up, which made it look like a collector-specific bug — it has no spill volume
+# at all, so it never touched the problem.
+#
+# /srv/state is the runner's, and is the same latent bug rather than an observed one: the
+# runner starts without writing there, so it reported healthy, and the failure would have
+# arrived the first time it wrote `known_hosts` — during a runbook run, which is the worst
+# time to discover it.
+RUN mkdir -p /srv/spill /srv/state && chown -R uops:uops /srv/spill /srv/state
+
 # One image, every binary. Which one runs is the entrypoint's business — see
 # docker-compose.yml, where the poller is the same image with a different command. Two
 # images would be two builds, two pushes and two chances for the poller to be a version
