@@ -1,60 +1,77 @@
 # Status — pick up from here
 
-Last updated: 2026-09-25 · repo: `github.com/Ratul-netizen/Oculex`
+Last updated: 2026-09-28 · repo: `github.com/Ratul-netizen/Oculex`
 
-## Pick up here — 2026-09-25
+## Pick up here — 2026-09-28
 
-### First: read the CI run. It has been the missing signal all along.
+### CI went from four red jobs to one, and `gh` is why
 
-`gh` is installed now (`C:\Program Files\GitHub CLI\gh.exe`, authenticated with `repo`), which
-is what made the rest of this possible. One command answers where things stand:
+`gh` is installed (`C:\Program Files\GitHub CLI\gh.exe`, authenticated, `repo` scope). Reading
+a run costs one command, and the logs need auth — unauthenticated `curl` gets 403.
 
 ```bash
 gh run list --limit 3
-gh run view <id> --log-failed     # the logs need auth; unauthenticated curl gets 403
+gh run view <id> --log-failed
+gh run view --job <job-id> --log     # per-job, with step names
 ```
 
-**Run `36070873817` on `e201483` was still in flight when this was written.** Four jobs were
-pending: `check`, `integration`, `crypto-builds` and `stack`.
+**Run `36356729049` on `7a13b1d` was still in flight.** Six of its seven jobs had already
+passed; only `schemas · repositories · api` was running. Check it first.
 
-**CI had failed on every push for months, with the same four jobs**, and I repeatedly cited it
-as verification while it had never run the workspace test suite at all — `integration` died
-at step 9 of ~30. Four red jobs stop being a signal and become scenery. Fixed in order, each
-one uncovering the next:
+**`docker compose up` is green**, which means SPEC §M1's criterion — *"`docker compose up`
+gives a working stack from a clean checkout on a clean machine"* — is verified rather than
+asserted, for the first time. Every fix below was found by reading a log, and each one
+uncovered the next:
 
-| fix | commit | what it unblocked |
-|---|---|---|
-| five foreign keys with no index | `4b19a39` | `Schema invariants`, confirmed green in CI |
-| `cargo fmt --all` (265 locations, 75 files) | `d54162d` | `Format`, confirmed green in CI; Clippy then ran for the first time and found a 110-line test |
-| the IEEE MAC table was never committed | `43fcc2a` | three jobs compiling past `uops-oui` |
-| OpenSSL in the Alpine builder | `43fcc2a` | `Build the image`, which got past it |
-| one unused `cfg(unix)` import; the compose tenant slug | `e201483` | unverified — this is the run that was pending |
+| cause | commit |
+|---|---|
+| five foreign keys with no covering index | `4b19a39` |
+| `cargo fmt --all` — 265 locations, and CI's first step | `d54162d` |
+| the IEEE MAC table was gitignored, so three jobs could not compile | `43fcc2a` |
+| OpenSSL missing from the Alpine builder | `43fcc2a` |
+| one unused `cfg(unix)` import; the compose tenant slug | `e201483` |
+| a flaky event count; collectors waiting on `migrate` instead of the server | `636bdde` |
+| `/srv/spill` owned by root under a non-root user; `pg_dump` 16 against a 17 server | `148d8d9` |
+| a p95 taken from twenty samples | `7a13b1d` |
 
-### What is still open, in order
+### The product is **Oculex** as of 2026-09-28
 
-1. **Finish CI.** Whatever `36070873817` says. Expect more layers: `-D warnings` stops at the
-   first error, so Linux-only warnings behind `ssh.rs` have never been seen. **Nothing on
-   Windows can find them** — the `#[cfg(unix)]` blocks are never compiled here, and
-   cross-checking to `x86_64-unknown-linux-gnu` fails because `openssl-sys` needs a Linux
-   OpenSSL to run its build script. Read the log instead of guessing.
+Third name, after *Aegisora* and *Veyronis*, and the second rename cost prose plus one
+constant — `PRODUCT` in `web/src/brand.tsx` — and no identifier. `uops` stays everywhere
+until trademark clearance. The repo is now `github.com/Ratul-netizen/Oculex`.
+`docs/../RENAME_AUDIT.md` §"Second rename" has the evidence, including two corrections to the
+handoff note: no deep rename is needed here, and the jurisdiction is **Bangladesh (DPDT)**,
+not India's MCA.
+
+**Do not blanket-replace a name in this repo.** `RENAME_AUDIT.md` and the naming sections of
+PLAN/README/SPEC/STATUS deliberately record the *rejected* names; a scripted replace turns
+that history into nonsense.
+
+### Open, in order
+
+1. **Finish CI** — whatever `36356729049` says about the scale test.
 2. **KEK rotation has no operator path** — the top finding of
    [`docs/unreached-triage.md`](./docs/unreached-triage.md) §1. Five functions, one subsystem,
    every caller a test, and a config surface that cannot express a retired key. Agreed next
    step is a decision document before code.
-3. **`v0.1.0` is not published.** Needs a GitHub *Release* from
-   `github.com/Ratul-netizen/Oculex/releases/new` with tag `v0.1.0` — `ci.yml` triggers on
-   `release: types: [published]`, so a bare `git push --tags` and a saved draft both fire
-   nothing. `release-artefacts` has never run. Now that `gh` is here: `gh release create v0.1.0`.
-4. **The repository is still public.** Making it private starts metering Actions minutes, and
-   this CI builds an image and a compose stack on every push.
+3. **`v0.1.0` is not published.** `release-artefacts` has never run, which is why two of
+   `docs/packaging.md`'s criteria are `[~]`. Needs a published GitHub *Release*, not a tag:
+   `ci.yml` triggers on `release: types: [published]`. Now that `gh` is here,
+   `gh release create v0.1.0`.
+4. **The repository is still public.** Private starts metering Actions minutes.
+5. **`logos/Oculex cybersecurity logo 1.png`** was committed in `148d8d9` by a `git add -A`
+   that was meant to exclude it. 351 KB, spaces in the name, and labelled "cybersecurity",
+   which may belong to the sibling project. Keep, rename or drop — the UI uses the letterless
+   SVG mark in `brand.tsx`, not a PNG.
 
-### One verification still outstanding
+### Running the suite locally
 
-The full workspace suite has not run locally since the `alertable` fix in `43f3500`. `cargo
-check --workspace --all-targets`, clippy with `-D warnings`, fmt and the doctests are all
-clean; the suite itself was killed by memory pressure, because it competes with the ClickHouse
-guest for RAM. Run it with nothing else heavy open — and `integration` will run it in CI as
-soon as that job gets far enough, which it never has.
+Both stores must be up or tests fail for reasons unrelated to the change. PostgreSQL is a
+portable install one directory above the repo (`../pgtmp/x/pgsql/bin`, which is also where
+`psql` is); ClickHouse is in the Kali guest, does not auto-start, and its IP is DHCP. The full
+`cargo test --workspace` competes with that guest for RAM and has been killed by memory
+pressure — run it with nothing else heavy open. `docs/dev-environment.md` opens with the
+pre-push list, and `cargo fmt --all --check` belongs in it.
 
 > Read this first on a new machine. [PLAN.md](./PLAN.md) is strategy,
 > [SPEC.md](./SPEC.md) is the M0–M4 implementation spec, this is *where we are*.
