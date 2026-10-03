@@ -16,6 +16,7 @@
 //! log in `uops-secrets`, which is infallible by construction for the same reason.
 //! What the API does instead is record the failure where an operator will see it.
 
+use chrono::{DateTime, Utc};
 use uops_core::{Result, TenantId};
 
 use crate::error::map;
@@ -34,6 +35,14 @@ pub struct AuditEntry {
     pub before: Option<serde_json::Value>,
     pub after: Option<serde_json::Value>,
     pub ip: Option<std::net::IpAddr>,
+    /// When it happened. The database sets it (`DEFAULT now()`) on insert, so a writer leaves
+    /// this `None`; anything read back carries `Some`.
+    ///
+    /// It was not read back at all until 2026-10-03. Both tables have recorded `at` since
+    /// migration 0006 and both readers sorted by it — and then never selected it, so the audit
+    /// screen listed who did what to which with no way to say *when*. An audit trail that
+    /// cannot answer that fails the first question an auditor asks.
+    pub recorded_at: Option<DateTime<Utc>>,
 }
 
 /// One read.
@@ -49,6 +58,14 @@ pub struct AccessEntry {
     pub fingerprint: Option<String>,
     pub row_count: Option<i64>,
     pub ip: Option<std::net::IpAddr>,
+    /// When it happened. The database sets it (`DEFAULT now()`) on insert, so a writer leaves
+    /// this `None`; anything read back carries `Some`.
+    ///
+    /// It was not read back at all until 2026-10-03. Both tables have recorded `at` since
+    /// migration 0006 and both readers sorted by it — and then never selected it, so the audit
+    /// screen listed who did what to which with no way to say *when*. An audit trail that
+    /// cannot answer that fails the first question an auditor asks.
+    pub recorded_at: Option<DateTime<Utc>>,
 }
 
 impl PgStore {
@@ -100,7 +117,7 @@ impl PgStore {
     pub async fn audit_entries(&self, tenant: TenantId, limit: i64) -> Result<Vec<AuditEntry>> {
         let rows = sqlx::query!(
             r#"
-            SELECT actor, action, target, before, after, host(ip) AS ip
+            SELECT actor, action, target, before, after, host(ip) AS ip, at
               FROM audit_log
              WHERE tenant_id = $1
              ORDER BY at DESC
@@ -123,6 +140,7 @@ impl PgStore {
                 before: r.before,
                 after: r.after,
                 ip: r.ip.and_then(|s| s.parse().ok()),
+                recorded_at: Some(r.at),
             })
             .collect())
     }
@@ -131,7 +149,7 @@ impl PgStore {
     pub async fn access_entries(&self, tenant: TenantId, limit: i64) -> Result<Vec<AccessEntry>> {
         let rows = sqlx::query!(
             r#"
-            SELECT actor, target, fingerprint, row_count, host(ip) AS ip
+            SELECT actor, target, fingerprint, row_count, host(ip) AS ip, at
               FROM access_log
              WHERE tenant_id = $1
              ORDER BY at DESC
@@ -153,6 +171,7 @@ impl PgStore {
                 fingerprint: r.fingerprint,
                 row_count: r.row_count,
                 ip: r.ip.and_then(|s| s.parse().ok()),
+                recorded_at: Some(r.at),
             })
             .collect())
     }

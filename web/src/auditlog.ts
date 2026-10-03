@@ -13,6 +13,8 @@ import { request } from "./api";
 
 /** One mutating call. */
 export interface Change {
+  /** When, RFC 3339 in UTC. Absent from the API until 2026-10-03 — see `ChangeView::at`. */
+  at?: string;
   /** `user:<uuid>` | `collector` | `system`. */
   actor: string;
   /** Dotted and stable across releases: `resource.create`, `identity.merge`. */
@@ -25,6 +27,8 @@ export interface Change {
 
 /** One read. */
 export interface Read {
+  /** When, RFC 3339 in UTC. Absent from the API until 2026-10-03 — see `ChangeView::at`. */
+  at?: string;
   actor: string;
   /** `resource:<id>` | `resources` | `query` | `credential:<id>`. */
   target: string;

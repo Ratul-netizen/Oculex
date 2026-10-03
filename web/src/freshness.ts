@@ -30,6 +30,7 @@
  */
 
 import type { Query, ResultSet, Signal } from "./query";
+import { count } from "./words";
 
 /**
  * The signals the tile reports on, in the order it lists them.
@@ -62,6 +63,47 @@ export function arrivals(signal: Signal, start: string, end: string): Query {
     aggregations: [{ func: "count", alias: "n" }],
     limit: 1,
   };
+}
+
+/** The same count, for one resource — the resource page's "is this alive?" */
+export function arrivalsFor(resourceId: string, signal: Signal, start: string, end: string): Query {
+  return { ...arrivals(signal, start, end), resources: { type: "ids", ids: [resourceId] } };
+}
+
+/** What one row of a signal is called, singular and plural. A trace row is a span. */
+const NOUN: Record<Signal, [string, string]> = {
+  metric: ["metric point", "metric points"],
+  log: ["log line", "log lines"],
+  event: ["event", "events"],
+  state: ["state change", "state changes"],
+  flow: ["flow", "flows"],
+  trace: ["span", "spans"],
+};
+
+/**
+ * One resource's arrivals, as a phrase for beside its status.
+ *
+ * Exists because status comes only from an availability check — SNMP, ICMP — and a host
+ * that only sends OpenTelemetry has none, so it showed "unknown" while sending a log line a
+ * second. Not by changing the status: status feeds alerting and suppression, and inventing an
+ * "up" from telemetry would change which alerts fire. Beside it, then, in the words this
+ * module already uses: what arrived in the window, not when it last did — see the module
+ * docs for why "last seen" is not safely expressible.
+ *
+ * Empty while anything is still loading, so the line does not flicker from "nothing" to a
+ * count; and `null` counts (a failed read) are left out rather than shown as zero.
+ */
+export function describeReporting(arrivals: Arrival[], window: string): string {
+  if (arrivals.some((a) => a.count === null && !a.failed)) return "";
+  const heard = arrivals.filter((a) => (a.count ?? 0) > 0);
+  if (heard.length === 0) {
+    return arrivals.every((a) => a.failed) ? "" : `nothing arrived in ${window}`;
+  }
+  const parts = heard.map((a) => {
+    const [one, many] = NOUN[a.signal];
+    return count(a.count ?? 0, one, many);
+  });
+  return `reporting — ${parts.join(", ")} in ${window}`;
 }
 
 /** What one signal's row on the tile says. */

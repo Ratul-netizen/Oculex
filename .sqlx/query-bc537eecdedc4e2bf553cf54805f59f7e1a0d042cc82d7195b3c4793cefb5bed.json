@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT actor, action, target, before, after, host(ip) AS ip\n              FROM audit_log\n             WHERE tenant_id = $1\n             ORDER BY at DESC\n             LIMIT $2\n            ",
+  "query": "\n            SELECT actor, target, fingerprint, row_count, host(ip) AS ip, at\n              FROM access_log\n             WHERE tenant_id = $1\n             ORDER BY at DESC\n             LIMIT $2\n            ",
   "describe": {
     "columns": [
       {
@@ -10,28 +10,28 @@
       },
       {
         "ordinal": 1,
-        "name": "action",
-        "type_info": "Text"
-      },
-      {
-        "ordinal": 2,
         "name": "target",
         "type_info": "Text"
       },
       {
+        "ordinal": 2,
+        "name": "fingerprint",
+        "type_info": "Text"
+      },
+      {
         "ordinal": 3,
-        "name": "before",
-        "type_info": "Jsonb"
+        "name": "row_count",
+        "type_info": "Int8"
       },
       {
         "ordinal": 4,
-        "name": "after",
-        "type_info": "Jsonb"
+        "name": "ip",
+        "type_info": "Text"
       },
       {
         "ordinal": 5,
-        "name": "ip",
-        "type_info": "Text"
+        "name": "at",
+        "type_info": "Timestamptz"
       }
     ],
     "parameters": {
@@ -43,11 +43,11 @@
     "nullable": [
       false,
       false,
-      false,
       true,
       true,
-      null
+      null,
+      false
     ]
   },
-  "hash": "447369e7a0f123a73ed23e90aa8b2441c08d88dbbc8014e507d5e5d663fa9527"
+  "hash": "bc537eecdedc4e2bf553cf54805f59f7e1a0d042cc82d7195b3c4793cefb5bed"
 }

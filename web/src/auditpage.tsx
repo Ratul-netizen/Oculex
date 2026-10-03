@@ -37,7 +37,8 @@ import {
   touchedACredential,
 } from "./auditlog";
 import { message } from "./query";
-import { useShell } from "./shell";
+import { useShell, useStamp } from "./shell";
+import { zoneLabel } from "./time";
 
 type Tab = "reads" | "changes";
 
@@ -90,6 +91,7 @@ export function AuditPage() {
 }
 
 function Reads({ tenant }: { tenant: string }) {
+  const { zone } = useShell();
   const reads = useQuery({
     queryKey: ["audit-reads", tenant],
     queryFn: () => listReads(tenant),
@@ -131,6 +133,9 @@ function Reads({ tenant }: { tenant: string }) {
       <table className="rows audit">
         <thead>
           <tr>
+            <th scope="col">
+              When <span className="dim">({zoneLabel(zone)})</span>
+            </th>
             <th scope="col">Who</th>
             <th scope="col">Read</th>
             <th scope="col">What was asked</th>
@@ -151,8 +156,10 @@ function Reads({ tenant }: { tenant: string }) {
 }
 
 function ReadRow({ read }: { read: Read }) {
+  const t = useStamp();
   return (
     <tr className={isLargeRead(read) ? "attention" : undefined}>
+      <td className="mono dim">{t(read.at)}</td>
       <td>{describeActor(read.actor)}</td>
       <td className="mono">{read.target}</td>
       {/* The query's shape, never its parameters — those carry a customer's hostnames and
@@ -166,6 +173,7 @@ function ReadRow({ read }: { read: Read }) {
 }
 
 function Changes({ tenant }: { tenant: string }) {
+  const { zone } = useShell();
   const changes = useQuery({
     queryKey: ["audit-changes", tenant],
     queryFn: () => listChanges(tenant),
@@ -193,6 +201,9 @@ function Changes({ tenant }: { tenant: string }) {
     <table className="rows audit">
       <thead>
         <tr>
+          <th scope="col">
+            When <span className="dim">({zoneLabel(zone)})</span>
+          </th>
           <th scope="col">Who</th>
           <th scope="col">Did</th>
           <th scope="col">To</th>
@@ -210,6 +221,7 @@ function Changes({ tenant }: { tenant: string }) {
 }
 
 function ChangeRow({ change }: { change: Change }) {
+  const t = useStamp();
   const [open, setOpen] = useState(false);
   const has = change.before !== undefined || change.after !== undefined;
 
@@ -217,6 +229,7 @@ function ChangeRow({ change }: { change: Change }) {
     <>
       {/* A credential action is where an investigation starts, so it is marked. */}
       <tr className={touchedACredential(change) ? "attention" : undefined}>
+        <td className="mono dim">{t(change.at)}</td>
         <td>{describeActor(change.actor)}</td>
         <td className="mono">{change.action}</td>
         <td className="mono">{change.target}</td>
@@ -233,7 +246,7 @@ function ChangeRow({ change }: { change: Change }) {
       </tr>
       {open && (
         <tr>
-          <td colSpan={5}>
+          <td colSpan={6}>
             <pre className="mono raw-trace">
               {JSON.stringify({ before: change.before, after: change.after }, null, 2)}
             </pre>

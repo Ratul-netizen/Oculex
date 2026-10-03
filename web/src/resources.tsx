@@ -6,7 +6,13 @@
  * line up in a browser rather than only in a test.
  */
 
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 
 import {
@@ -18,10 +24,12 @@ import {
   type Role,
 } from "./api";
 import { contextParams } from "./context";
+import { WATCHED, arrivalsFor, countOf, describeReporting } from "./freshness";
 import { PathPanel } from "./pathpanel";
+import { runQuery } from "./query";
 import { AllSignals } from "./signals";
 import type { ShellSearch } from "./shell";
-import { resolveRange, useShell, useStamp } from "./shell";
+import { describeRange, resolveRange, useShell, useStamp } from "./shell";
 
 function statusColour(status: ResourceStatus): string {
   switch (status) {
@@ -186,6 +194,34 @@ export function ResourcePage() {
     queryFn: () => api.resource(tenant.tenant_id, id),
   });
 
+  // What arrived from this resource in the window, for beside its status. A host that only
+  // sends OpenTelemetry has no availability check, so its status is honestly "unknown" —
+  // and read alone that looked like a dead host while it sent a log line a second. See
+  // `describeReporting` for why this sits beside the status rather than changing it.
+  const window = resolveRange(range);
+  const reporting = useQueries({
+    queries: WATCHED.map((w) => ({
+      queryKey: ["reporting", tenant.tenant_id, id, w.signal, range.from, range.to],
+      queryFn: () =>
+        runQuery(
+          tenant.tenant_id,
+          arrivalsFor(id, w.signal, window?.from.toISOString() ?? "", window?.to.toISOString() ?? ""),
+        ),
+      enabled: window !== null,
+      retry: false,
+      staleTime: 30_000,
+    })),
+  });
+  const reportingLine = describeReporting(
+    WATCHED.map((w, i) => ({
+      signal: w.signal,
+      label: w.label,
+      count: countOf(reporting[i]?.data),
+      failed: reporting[i]?.isError ?? false,
+    })),
+    describeRange(range).toLowerCase(),
+  );
+
   const invalidate = async () => {
     await queryClient.invalidateQueries({ queryKey: ["resource", tenant.tenant_id, id] });
     await queryClient.invalidateQueries({ queryKey: ["resources", tenant.tenant_id] });
@@ -255,6 +291,7 @@ export function ResourcePage() {
       <p className="dim">
         <span className="mono">{r.kind}</span> ·{" "}
         <span style={{ color: statusColour(r.status) }}>{r.status}</span>
+        {reportingLine && <> · {reportingLine}</>}
       </p>
 
       <table className="detail">

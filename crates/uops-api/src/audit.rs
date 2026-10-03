@@ -220,6 +220,8 @@ pub async fn layer(
                 before: detail.before,
                 after: detail.after,
                 ip,
+                // The database stamps it; see `AuditEntry::recorded_at`.
+                recorded_at: None,
             })
             .await
     } else {
@@ -232,6 +234,7 @@ pub async fn layer(
                 fingerprint: detail.fingerprint,
                 row_count: detail.row_count,
                 ip,
+                recorded_at: None,
             })
             .await
     };

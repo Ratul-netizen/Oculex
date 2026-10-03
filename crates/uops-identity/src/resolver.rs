@@ -589,11 +589,20 @@ fn guess_name(observed: &ObservedIdentity) -> String {
 
 /// A guess, corrected by a human or by discovery. `service_name` without a host is the
 /// one case that is clearly not a device.
+///
+/// A host name *from OpenTelemetry* is a host too, not only a `host.id`. It comes from the
+/// SDK's or the collector's host detector, which describes the machine that process runs on
+/// — and a switch does not run an `OTel` SDK. Most exporters send `host.name` and not
+/// `host.id`, so before 2026-10-03 nearly every OTLP-reporting server arrived labelled
+/// "device", beside the routers. The same name from syslog stays a device: that is exactly
+/// what a switch sends.
 fn guess_kind(observed: &ObservedIdentity) -> ResourceKind {
     use uops_core::IdentifierKind as K;
     let has = |k: K| observed.identifiers.iter().any(|i| i.kind == k);
+    // `uops_otlp::SOURCE_KIND`, written out: this crate sits below the decoders.
+    let from_otlp = observed.source == "otlp";
 
-    if has(K::OtelHostId) {
+    if has(K::OtelHostId) || (from_otlp && has(K::Hostname)) {
         ResourceKind::Host
     } else if has(K::ServiceName) && !has(K::MgmtIp) && !has(K::Hostname) {
         ResourceKind::Service

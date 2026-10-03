@@ -55,6 +55,9 @@ pub struct Paging {
 /// One mutating call.
 #[derive(Debug, Serialize)]
 pub struct ChangeView {
+    /// When, as RFC 3339 in UTC. The screen converts it to the viewer's zone; an API client
+    /// gets the unambiguous form.
+    pub at: Option<chrono::DateTime<chrono::Utc>>,
     /// `user:<uuid>` | `collector` | `system`.
     pub actor: String,
     /// Dotted and stable across releases, so an auditor's saved filter keeps working.
@@ -71,6 +74,9 @@ pub struct ChangeView {
 /// One read.
 #[derive(Debug, Serialize)]
 pub struct ReadView {
+    /// When, as RFC 3339 in UTC. The screen converts it to the viewer's zone; an API client
+    /// gets the unambiguous form.
+    pub at: Option<chrono::DateTime<chrono::Utc>>,
     pub actor: String,
     /// `resource:<id>` | `resources` | `query` | `credential:<id>`.
     pub target: String,
@@ -112,6 +118,7 @@ pub async fn changes(
     Ok(Json(
         rows.into_iter()
             .map(|e| ChangeView {
+                at: e.recorded_at,
                 actor: e.actor,
                 action: e.action,
                 target: e.target,
@@ -149,6 +156,7 @@ pub async fn reads(
     Ok(Json(
         rows.into_iter()
             .map(|e| ReadView {
+                at: e.recorded_at,
                 actor: e.actor,
                 target: e.target,
                 fingerprint: e.fingerprint,

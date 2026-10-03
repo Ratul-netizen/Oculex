@@ -32,6 +32,32 @@ fn landed_on(r: &Resolution) -> ResourceId {
     }
 }
 
+/// A host name from OpenTelemetry is a host; the same name from syslog is a device.
+///
+/// Most `OTel` exporters send `host.name` and not `host.id`, so until 2026-10-03 nearly every
+/// server reporting over OTLP arrived labelled "device", beside the routers. A host name an
+/// `OTel` SDK reports describes the machine that SDK runs on, and a switch runs no SDK.
+#[tokio::test]
+async fn an_otel_host_name_is_a_host_and_a_syslog_one_is_a_device() {
+    let (resolver, tenant) = resolver();
+
+    let otel = ObservedIdentity::new("otlp").with(K::Hostname, "app-01");
+    let host = landed_on(&resolver.resolve(tenant, &otel).await.unwrap());
+    assert_eq!(resolver.store().kind_of(host), Some(ResourceKind::Host));
+
+    let syslog = ObservedIdentity::new("syslog").with(K::Hostname, "rtr-01");
+    let device = landed_on(&resolver.resolve(tenant, &syslog).await.unwrap());
+    assert_eq!(resolver.store().kind_of(device), Some(ResourceKind::Device));
+
+    // A bare service name is still a service, whoever reports it.
+    let svc = ObservedIdentity::new("otlp").with(K::ServiceName, "checkout");
+    let service = landed_on(&resolver.resolve(tenant, &svc).await.unwrap());
+    assert_eq!(
+        resolver.store().kind_of(service),
+        Some(ResourceKind::Service)
+    );
+}
+
 #[tokio::test]
 async fn a_shared_tier_one_identifier_joins_two_sources_automatically() {
     // The product's premise, on the path that needs no human: SNMP reports a serial,

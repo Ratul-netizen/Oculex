@@ -366,6 +366,51 @@ async fn a_mutation_leaves_an_audit_row_with_before_and_after() {
     assert!(change.actor.starts_with("user:"), "{}", change.actor);
 }
 
+/// The audit screen can say *when*.
+///
+/// Both audit tables have recorded `at` since migration 0006 and both readers sorted by
+/// it, then never selected it — so `/api/v1/audit/changes` and `/reads` listed who did what
+/// to which, newest first, with no time on any row. Found 2026-10-03 while giving the UI one
+/// rule for writing times. This asserts the field reaches the wire, parses, and is the time
+/// the thing actually happened rather than a placeholder.
+#[tokio::test]
+async fn the_audit_trail_says_when() {
+    let f = fixture("when", Role::Admin).await;
+    let before = chrono::Utc::now() - chrono::Duration::seconds(5);
+
+    let (status, created) = f
+        .call(f.send(
+            "POST",
+            "/api/v1/resources",
+            &serde_json::json!({ "kind": "device", "name": "rtr-when" }),
+        ))
+        .await;
+    assert_eq!(status, StatusCode::CREATED, "{created}");
+    let id = created["id"].as_str().unwrap().to_owned();
+    let (status, _) = f.call(f.get(&format!("/api/v1/resources/{id}"))).await;
+    assert_eq!(status, StatusCode::OK);
+    let after = chrono::Utc::now() + chrono::Duration::seconds(5);
+
+    for path in ["/api/v1/audit/changes", "/api/v1/audit/reads"] {
+        let (status, rows) = f.call(f.get(path)).await;
+        assert_eq!(status, StatusCode::OK, "{path}: {rows}");
+        let rows = rows.as_array().expect("a list");
+        assert!(!rows.is_empty(), "{path} returned nothing to check");
+        for row in rows {
+            let at = row["at"]
+                .as_str()
+                .unwrap_or_else(|| panic!("{path}: a row with no `at`: {row}"));
+            let at = chrono::DateTime::parse_from_rfc3339(at)
+                .unwrap_or_else(|e| panic!("{path}: `at` is not RFC 3339 ({e}): {at}"))
+                .with_timezone(&chrono::Utc);
+            assert!(
+                at >= before && at <= after,
+                "{path}: `at` {at} is not when this happened ({before} .. {after})"
+            );
+        }
+    }
+}
+
 #[tokio::test]
 async fn a_refused_request_is_not_recorded_as_a_read() {
     // Otherwise whoever is probing fills the log with their own failures and buries the

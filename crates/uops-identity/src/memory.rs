@@ -66,6 +66,12 @@ impl MemoryIdentityStore {
     pub fn resource_count(&self) -> usize {
         self.lock().resources.len()
     }
+
+    /// What kind a provisional resource was created as — the resolver's guess.
+    #[must_use]
+    pub fn kind_of(&self, id: ResourceId) -> Option<ResourceKind> {
+        self.lock().resources.get(&id).map(|(_, kind, _)| *kind)
+    }
 }
 
 #[async_trait]

@@ -11,15 +11,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { ResultSet } from "./query";
-import {
-  type Arrival,
-  WATCHED,
-  arrivals,
-  countOf,
-  humanArrivals,
-  silent,
-  verdict,
-} from "./freshness";
+import { type Arrival, WATCHED, arrivals, countOf, humanArrivals, silent, verdict, describeReporting } from "./freshness";
 
 const START = "2026-09-23T12:00:00Z";
 const END = "2026-09-23T13:00:00Z";
@@ -149,5 +141,42 @@ describe("presentation", () => {
     expect(humanArrivals(null)).toBe("—");
     expect(humanArrivals(0)).toBe("0");
     expect(humanArrivals(1234)).toBe("1,234");
+  });
+});
+
+describe("describeReporting", () => {
+  const a = (signal: Arrival["signal"], count: number | null, failed = false): Arrival => ({
+    signal,
+    label: signal,
+    count,
+    failed,
+  });
+
+  // The case it exists for: no availability check, so status says "unknown", while the
+  // host is plainly sending.
+  it("says what arrived, by its own noun, with counts that agree", () => {
+    expect(describeReporting([a("metric", 120), a("log", 1838), a("trace", 1)], "last 1h")).toBe(
+      `reporting — 120 metric points, ${(1838).toLocaleString()} log lines, 1 span in last 1h`,
+    );
+  });
+
+  it("leaves out signals that sent nothing", () => {
+    expect(describeReporting([a("metric", 0), a("log", 3), a("flow", 0)], "last 15m")).toBe(
+      "reporting — 3 log lines in last 15m",
+    );
+  });
+
+  it("says plainly when nothing arrived at all", () => {
+    expect(describeReporting([a("metric", 0), a("log", 0)], "last 1h")).toBe(
+      "nothing arrived in last 1h",
+    );
+  });
+
+  it("says nothing while a count is still loading, rather than flickering", () => {
+    expect(describeReporting([a("metric", 5), a("log", null)], "last 1h")).toBe("");
+  });
+
+  it("does not turn failed reads into a confident zero", () => {
+    expect(describeReporting([a("metric", null, true), a("log", null, true)], "last 1h")).toBe("");
   });
 });
