@@ -58,6 +58,7 @@ pub mod identity;
 pub mod incidents;
 pub mod ingest;
 pub mod ipam;
+pub mod kek;
 pub mod lease;
 pub mod maintenance;
 pub mod neighbour_ingest;

@@ -55,6 +55,27 @@ which is how a test grew past `too_many_lines` without anybody hearing about it.
 
 ---
 
+## Rotating the key-encryption key
+
+The full reasoning is `docs/kek-rotation.md`; this is the procedure.
+
+```bash
+mkdir -p /srv/kek/retired
+mv /srv/kek/kek.hex /srv/kek/retired/default.hex      # named by its id: UOPS_KEK_ID was "default"
+od -An -tx1 -N32 /dev/urandom | tr -dc '0-9a-f' > /srv/kek/kek.hex && chmod 600 /srv/kek/kek.hex
+
+# On every service that mounts the key — server, poller, runner — then restart them:
+export UOPS_KEK_ID=kek-2026-10 UOPS_KEK_RETIRED_DIR=/srv/kek/retired
+
+uops-server rotate-kek     # read the table: `failed` must be 0
+```
+
+Delete `retired/default.hex` only when the *after* table shows no row on `default`, and delete
+it from wherever the key is backed up as well. Until then nothing is lost: the retired key
+keeps every unmoved row openable.
+
+---
+
 ## PostgreSQL — a portable install
 
 No container needed: PostgreSQL has a Windows build that runs from a directory.

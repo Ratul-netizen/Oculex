@@ -34,10 +34,15 @@ pub type Vault = LocalVault<RustCryptoAead, PgSealedStore, MemoryAccessLog>;
 /// When the KEK cannot be read, is not 64 hex characters, or — on Unix — is in a file
 /// other local accounts can read.
 pub fn open(store: PgStore, config: &Config) -> Result<Vault, uops_secrets::Error> {
-    let ring = match &config.kek {
+    let mut ring = match &config.kek {
         KekSource::File(path) => KekRing::from_file(path, config.kek_id.clone())?,
         KekSource::Env(name) => KekRing::from_env(name, config.kek_id.clone())?,
     };
+    // Retired keys too, so this process keeps opening credentials sealed under the old key
+    // while a rotation is under way — `docs/kek-rotation.md` §4, steps 3 and 4.
+    if let Some(dir) = &config.kek_retired_dir {
+        ring.load_retired_dir(dir)?;
+    }
     Ok(LocalVault::new(
         RustCryptoAead,
         PgSealedStore::new(store),

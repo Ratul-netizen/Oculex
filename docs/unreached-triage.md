@@ -49,6 +49,13 @@ are skipped as too generic.
 
 **Severity: the highest here.** Five functions, one subsystem, and every caller is a test.
 
+> **Update, 2026-10-03: the KEK half is fixed.** `uops-server rotate-kek` now calls
+> `rotate_kek` and `Envelope::rewrap`, and retired keys are loaded through `add_retired` from
+> `UOPS_KEK_RETIRED_DIR` — `docs/kek-rotation.md`, with an end-to-end test that deletes the old
+> key and opens every row. `promote_kek` is still unreached and does not need to be: the active
+> key is chosen by configuration at start. The **credential** half — `get_latest`, so a
+> collector picks up a rotated credential's new version — is still open.
+
 | function | what it is for |
 |---|---|
 | `LocalVault::rotate_kek` | "Re-wrap every DEK under the active KEK" |

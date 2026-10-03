@@ -89,23 +89,69 @@ impl KekRing {
     /// **rejected**, not warned about. A KEK readable by other local accounts is not a
     /// root of trust, and a warning in a log nobody reads is not a control.
     pub fn from_file(path: &Path, id: KeyId) -> Result<Self> {
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            let mode = std::fs::metadata(path)
-                .map_err(|e| Error::KekUnavailable(format!("{}: {e}", path.display())))?
-                .permissions()
-                .mode();
-            if mode & 0o077 != 0 {
-                return Err(Error::KekPermissions {
-                    path: path.display().to_string(),
-                    mode: mode & 0o777,
-                });
+        Ok(Self::new(id, Secret::new(read_key_file(path)?)))
+    }
+
+    /// Add every key in a directory of retired keys — `docs/kek-rotation.md` §3.1.
+    ///
+    /// Each `<id>.hex` file is one retired key, and its id is the file's name: the id a row
+    /// recorded when it was sealed, which is the only thing that matters when opening it.
+    /// Other files are ignored, so a README beside the keys is harmless.
+    ///
+    /// Strict where it could be lenient, because the failure being prevented is silent: a
+    /// retired key that is quietly not loaded is every credential sealed under it failing
+    /// with `UnknownKek`, one poll at a time. So a directory that was configured and does
+    /// not exist, a file that does not parse, a file readable by other accounts, and a file
+    /// claiming the *active* key's id are each an error that stops the process.
+    ///
+    /// Returns the ids loaded, sorted, for the startup report.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::KekUnavailable`] for a missing or unreadable directory or file,
+    /// [`Error::KekPermissions`] for a key readable by others, and
+    /// [`Error::KekMalformed`] for a file that is not 64 hex characters or that names the
+    /// active key.
+    pub fn load_retired_dir(&mut self, dir: &Path) -> Result<Vec<KeyId>> {
+        let entries = std::fs::read_dir(dir).map_err(|e| {
+            Error::KekUnavailable(format!("retired keys in {}: {e}", dir.display()))
+        })?;
+
+        let mut loaded = Vec::new();
+        for entry in entries {
+            let path = entry
+                .map_err(|e| Error::KekUnavailable(format!("{}: {e}", dir.display())))?
+                .path();
+            if path.extension().and_then(|e| e.to_str()) != Some("hex") {
+                continue;
             }
+            let Some(id) = path
+                .file_stem()
+                .and_then(|s| s.to_str())
+                .filter(|s| !s.is_empty())
+            else {
+                continue;
+            };
+            let id = KeyId::new(id);
+            if id == self.active {
+                return Err(Error::KekMalformed(format!(
+                    "{} is named for the active key `{}` — a retired key must have a different id",
+                    path.display(),
+                    id.as_str()
+                )));
+            }
+            let key = read_key_file(&path)?;
+            self.add_retired(id.clone(), Secret::new(key));
+            loaded.push(id);
         }
-        let content = std::fs::read_to_string(path)
-            .map_err(|e| Error::KekUnavailable(format!("{}: {e}", path.display())))?;
-        Ok(Self::new(id, Secret::new(parse_hex_key(content.trim())?)))
+        loaded.sort_by(|a, b| a.as_str().cmp(b.as_str()));
+        Ok(loaded)
+    }
+
+    /// Whether this ring can open a row sealed under `id`.
+    #[must_use]
+    pub fn holds(&self, id: &KeyId) -> bool {
+        self.keys.contains_key(id)
     }
 
     /// An ephemeral ring for tests.
@@ -115,6 +161,32 @@ impl KekRing {
     pub fn ephemeral_for_tests() -> Result<Self> {
         Ok(Self::new(KeyId::new("test-ephemeral"), Key::generate()?))
     }
+}
+
+/// Read one key file: permissions first, then 64 hex characters.
+///
+/// On Unix the file's permissions are checked and a group- or world-readable key is
+/// **rejected**, not warned about. A KEK readable by other local accounts is not a root of
+/// trust, and a warning in a log nobody reads is not a control. Shared by the active key
+/// and every retired one, so the two cannot drift into different checks.
+fn read_key_file(path: &Path) -> Result<Key> {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mode = std::fs::metadata(path)
+            .map_err(|e| Error::KekUnavailable(format!("{}: {e}", path.display())))?
+            .permissions()
+            .mode();
+        if mode & 0o077 != 0 {
+            return Err(Error::KekPermissions {
+                path: path.display().to_string(),
+                mode: mode & 0o777,
+            });
+        }
+    }
+    let content = std::fs::read_to_string(path)
+        .map_err(|e| Error::KekUnavailable(format!("{}: {e}", path.display())))?;
+    parse_hex_key(content.trim())
 }
 
 fn parse_hex_key(s: &str) -> Result<Key> {
@@ -145,6 +217,94 @@ const fn hex_val(c: u8) -> Result<u8> {
 
 #[cfg(test)]
 mod tests {
+    /// A directory of its own under the system temp dir, removed on drop.
+    struct Scratch(std::path::PathBuf);
+
+    impl Scratch {
+        fn new(tag: &str) -> Self {
+            let dir = std::env::temp_dir().join(format!(
+                "uops-kek-{tag}-{}-{}",
+                std::process::id(),
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .map_or(0, |d| d.as_nanos())
+            ));
+            std::fs::create_dir_all(&dir).expect("scratch dir");
+            Self(dir)
+        }
+
+        fn write(&self, name: &str, body: &str) {
+            let path = self.0.join(name);
+            std::fs::write(&path, body).expect("write key file");
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600))
+                    .expect("chmod");
+            }
+        }
+    }
+
+    impl Drop for Scratch {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
+
+    const KEY_A: &str = "0101010101010101010101010101010101010101010101010101010101010101";
+    const KEY_B: &str = "0202020202020202020202020202020202020202020202020202020202020202";
+
+    fn active_ring() -> super::KekRing {
+        super::KekRing::ephemeral_for_tests().expect("ring")
+    }
+
+    #[test]
+    fn retired_keys_load_by_file_name_and_open_their_rows() {
+        let dir = Scratch::new("load");
+        dir.write("default.hex", KEY_A);
+        dir.write("kek-2026-09.hex", KEY_B);
+        dir.write(
+            "README.md",
+            "the retired keys, until the rotation report shows none in use",
+        );
+
+        let mut ring = active_ring();
+        let loaded = ring.load_retired_dir(&dir.0).expect("load");
+
+        assert_eq!(
+            loaded.iter().map(super::KeyId::as_str).collect::<Vec<_>>(),
+            ["default", "kek-2026-09"],
+            "loaded by file name, sorted, and the README ignored"
+        );
+        assert!(ring.holds(&super::KeyId::new("default")));
+        assert!(ring.holds(&super::KeyId::new("kek-2026-09")));
+        // And the active key is still the one new rows are sealed under.
+        assert_eq!(ring.active_id().as_str(), "test-ephemeral");
+    }
+
+    #[test]
+    fn a_malformed_retired_key_stops_the_load_rather_than_being_skipped() {
+        let dir = Scratch::new("bad");
+        dir.write("default.hex", "not a key");
+        let err = active_ring().load_retired_dir(&dir.0).unwrap_err();
+        assert!(matches!(err, super::Error::KekMalformed(_)), "{err:?}");
+    }
+
+    #[test]
+    fn a_retired_key_may_not_claim_the_active_id() {
+        let dir = Scratch::new("clash");
+        dir.write("test-ephemeral.hex", KEY_A);
+        let err = active_ring().load_retired_dir(&dir.0).unwrap_err();
+        assert!(matches!(err, super::Error::KekMalformed(_)), "{err:?}");
+    }
+
+    #[test]
+    fn a_configured_directory_that_does_not_exist_is_an_error() {
+        let err = active_ring()
+            .load_retired_dir(std::path::Path::new("/definitely/not/a/kek/dir"))
+            .unwrap_err();
+        assert!(matches!(err, super::Error::KekUnavailable(_)), "{err:?}");
+    }
     use super::*;
 
     #[test]

@@ -27,6 +27,9 @@ pub struct Config {
     pub postgres: PgConfig,
     pub kek: KekSource,
     pub kek_id: KeyId,
+    /// Retired keys, from `UOPS_KEK_RETIRED_DIR` — every `<id>.hex` in it. Absent means
+    /// none, which is every installation that has never rotated. `docs/kek-rotation.md`.
+    pub kek_retired_dir: Option<PathBuf>,
     /// Where `known_hosts` and per-step key files live. Must persist across restarts.
     pub state_dir: PathBuf,
     /// How often the queue is asked when it was empty last time.
@@ -115,6 +118,10 @@ impl Config {
             postgres: PgConfig::from_env(),
             kek,
             kek_id: KeyId(std::env::var("UOPS_KEK_ID").unwrap_or_else(|_| "default".to_owned())),
+            kek_retired_dir: std::env::var("UOPS_KEK_RETIRED_DIR")
+                .ok()
+                .filter(|v| !v.trim().is_empty())
+                .map(|v| std::path::PathBuf::from(v.trim())),
             state_dir,
             poll_every: Duration::from_secs(number("UOPS_RUNNER_POLL_SECS", 5)?),
             abandon_after: Duration::from_secs(number("UOPS_RUNNER_ABANDON_SECS", 3600)?),
@@ -185,6 +192,7 @@ mod tests {
             },
             kek: KekSource::Env("UOPS_KEK_HEX".to_owned()),
             kek_id: KeyId("default".to_owned()),
+            kek_retired_dir: None,
             state_dir: PathBuf::from("/var/lib/uops"),
             poll_every: Duration::from_secs(5),
             abandon_after: Duration::from_secs(3600),

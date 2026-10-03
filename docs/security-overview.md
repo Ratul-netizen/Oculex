@@ -145,6 +145,15 @@ and a control plane restored without its KEK holds credentials nobody can open.*
 rows, names and assignments are intact; nothing can be polled. That is the intended
 behaviour and it is a test, not a claim — `crates/uops-store-pg/tests/restore.rs`.
 
+**The KEK can be rotated without re-encrypting anything.** A rotation re-wraps each row's
+data key under a new KEK and leaves the ciphertext untouched; the old key stays loaded, from
+`UOPS_KEK_RETIRED_DIR`, until every row has moved. `uops-server rotate-kek` performs it for
+device credentials and SSO client secrets, prints how many rows sit on each key before and
+after, and exits non-zero if any row could not be moved — so the old key is destroyed only
+after a report says nothing still needs it. A rotation interrupted at any point leaves every
+row openable. The procedure is in `docs/kek-rotation.md` §4, and a test performs it end to
+end: rotate, delete the old key, open every row.
+
 Telemetry at rest is not encrypted by this product. It is stored in ClickHouse, and disk
 encryption is the deployment's — as it is for PostgreSQL's own data files.
 

@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT kek_id, count(*) AS \"rows!\"\n              FROM credential\n             GROUP BY kek_id\n             ORDER BY kek_id\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "kek_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "rows!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      null
+    ]
+  },
+  "hash": "e07af5dd86f861b8a850949b257fc08d9cc3fcba89419b337c46c9415cac8783"
+}

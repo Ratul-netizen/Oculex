@@ -74,6 +74,9 @@ pub struct Config {
     /// that silently works.
     pub public_url: String,
     pub kek_id: String,
+    /// Retired keys, from `UOPS_KEK_RETIRED_DIR` — every `<id>.hex` in it. Absent means
+    /// none, which is every installation that has never rotated. `docs/kek-rotation.md`.
+    pub kek_retired_dir: Option<std::path::PathBuf>,
 }
 
 /// Where the KEK is read from. Mirrors `uops_poller::config::KekSource`.
@@ -190,6 +193,10 @@ impl Config {
                 (None, None) => None,
             },
             kek_id: var("UOPS_KEK_ID", "default"),
+            kek_retired_dir: std::env::var("UOPS_KEK_RETIRED_DIR")
+                .ok()
+                .filter(|v| !v.trim().is_empty())
+                .map(|v| std::path::PathBuf::from(v.trim())),
             public_url: std::env::var("UOPS_PUBLIC_URL")
                 .ok()
                 .filter(|s| !s.trim().is_empty())

@@ -1,0 +1,56 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT id,\n                   kek_id      AS \"kek_id!\",\n                   wrapped_dek AS \"wrapped_dek!\",\n                   dek_nonce   AS \"dek_nonce!\",\n                   ciphertext  AS \"ciphertext!\",\n                   nonce       AS \"nonce!\",\n                   backend_id  AS \"backend_id!\"\n              FROM identity_provider\n             WHERE kek_id IS NOT NULL\n             ORDER BY id\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "kek_id!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "wrapped_dek!",
+        "type_info": "Bytea"
+      },
+      {
+        "ordinal": 3,
+        "name": "dek_nonce!",
+        "type_info": "Bytea"
+      },
+      {
+        "ordinal": 4,
+        "name": "ciphertext!",
+        "type_info": "Bytea"
+      },
+      {
+        "ordinal": 5,
+        "name": "nonce!",
+        "type_info": "Bytea"
+      },
+      {
+        "ordinal": 6,
+        "name": "backend_id!",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "c162291627d05cc2e347344898f6fc7beff1b8aada3c5814aceef95f887c3a83"
+}

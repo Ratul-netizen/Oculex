@@ -1,6 +1,6 @@
 # Rotating the key-encryption key
 
-**Status:** a decision document, 2026-10-03. Written before the code, as this repository does,
+**Status:** built, 2026-10-03 — every criterion in §5 met. Written before the code, as this repository does,
 because the choices below are about how an operator runs a procedure that can lock every
 credential out of the product, and those are cheaper to argue about in prose than to fix in a
 release.
@@ -30,7 +30,7 @@ functions, one subsystem — and every caller is a test. Concretely:
    `UOPS_KEK_FILE` *or* `UOPS_KEK_HEX`, plus `UOPS_KEK_ID`.
 2. **Nothing triggers a re-wrap.** No route, no subcommand, no job calls `rotate_kek`.
 3. **SSO secrets are not covered at all.** `Envelope::rewrap` exists; nothing walks
-   `sso_provider` to call it.
+   `identity_provider` to call it.
 4. **Nothing says how far a rotation has got.** There is no count of rows per key, so an
    operator cannot know when the old key is safe to destroy.
 
@@ -105,7 +105,7 @@ and keep in the image.
 
 ### 3.3 Before anything else, the product says which keys its rows need
 
-At startup the server counts sealed rows per `kek_id` across `credential` and `sso_provider`
+At startup the server counts sealed rows per `kek_id` across `credential` and `identity_provider`
 and compares them with the ring:
 
 * a row whose key **is not in the ring** is logged loudly, with the count and the id, naming
@@ -134,13 +134,26 @@ the ring until step 5, and step 5 is a person deleting a file after reading a co
 
 ## 5. Acceptance criteria
 
-- [ ] A retired key is loaded from `UOPS_KEK_RETIRED_DIR`, by file name, with the active key's
-      permission check; a malformed or unreadable file stops the process
-- [ ] An installation with no `UOPS_KEK_RETIRED_DIR` behaves exactly as before
-- [ ] `uops-server rotate-kek` re-wraps device credentials **and** SSO client secrets, prints
+- [x] A retired key is loaded from `UOPS_KEK_RETIRED_DIR`, by file name, with the active key's
+      permission check; a malformed or unreadable file stops the process —
+      `KekRing::load_retired_dir`, four tests including a file that claims the active id. The
+      permission check is the *same function* the active key uses, not a copy of it
+- [x] An installation with no `UOPS_KEK_RETIRED_DIR` behaves exactly as before — the active
+      key is still `UOPS_KEK_FILE` and `UOPS_KEK_ID`, and the new variable is optional
+- [x] `uops-server rotate-kek` re-wraps device credentials **and** SSO client secrets, prints
       the per-key table before and after, and exits non-zero on any failure
-- [ ] After rotating, every credential and SSO secret opens with only the new key in the ring
-      — asserted by a test that rotates, removes the old key, and opens every row
-- [ ] Server startup reports rows on keys the ring does not hold, and rows on retired keys
-- [ ] The poller and runner load retired keys too, so they keep opening rows during step 3–4
-- [ ] `docs/security-overview.md` and `docs/dev-environment.md` describe the procedure
+- [x] After rotating, every credential and SSO secret opens with only the new key in the ring
+      — `crates/uops-server/tests/rotation.rs`, which runs the real binary against a scratch
+      database, deletes the old key, and opens both rows. A control shows the new key alone
+      opens nothing *before* the rotation, so the success after it is the rotation's doing.
+      Verified by mutation: a re-wrap that reports success and writes nothing fails the test,
+      because it checks the stored row and not the report
+- [x] Server startup reports rows on keys the ring does not hold, and rows on retired keys
+- [x] The poller and runner load retired keys too, so they keep opening rows during steps 3–4
+- [x] `docs/security-overview.md` and `docs/dev-environment.md` describe the procedure
+
+**Not done, and named:** the compose file does not set `UOPS_KEK_RETIRED_DIR`, because an
+installation that has never rotated has nothing to put there; the procedure in §4 says to set
+it on every service that mounts the key. And the startup report is printed rather than exposed
+on `/api/v1/health` — a rotation left half-done shows in the log at every start, not yet in a
+monitoring check.

@@ -50,7 +50,14 @@ type Vault = LocalVault<RustCryptoAead, PgSealedStore, MemoryAccessLog>;
 
 #[tokio::main]
 async fn main() -> ExitCode {
-    match run().await {
+    // `uops-server rotate-kek` is the one subcommand: a procedure a person runs, not a
+    // service — `docs/kek-rotation.md` §3.2. Anything else is the server.
+    let outcome = if std::env::args().nth(1).as_deref() == Some("rotate-kek") {
+        rotate_kek().await
+    } else {
+        run().await
+    };
+    match outcome {
         Ok(()) => ExitCode::SUCCESS,
         Err(e) => {
             // One line, on stderr, saying what failed. Not a panic: a backtrace through
@@ -90,6 +97,7 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
     // than on the first request to store a credential.
     let vault = if config.kek.is_some() {
         println!("credential storage enabled");
+        report_key_usage(&config, &store).await?;
         Some(open_vault(&config, &store)?)
     } else {
         // Not a warning. A deployment that only wants the inventory is a supported one,
@@ -249,6 +257,31 @@ fn open_sso(config: &Config) -> uops_api::sso::Sso {
     }
 }
 
+/// The key ring every sealed value in this process is opened with: the active key and,
+/// when `UOPS_KEK_RETIRED_DIR` is set, every retired one — `docs/kek-rotation.md`.
+///
+/// One function for both the vault and the SSO envelope. They used to build their rings
+/// separately, from identical code, and a retired-key directory added to one and not the
+/// other would have left SSO secrets unopenable mid-rotation while device credentials kept
+/// working — the kind of half-failure nobody connects to its cause.
+fn open_ring(config: &Config) -> Result<KekRing, String> {
+    let id = uops_secrets::record::KeyId(config.kek_id.clone());
+    let mut ring = match config.kek.as_ref() {
+        Some(config::KekSource::File(path)) => KekRing::from_file(path, id),
+        Some(config::KekSource::Env(name)) => KekRing::from_env(name, id),
+        // Unreachable through any caller, all of which check first. A sentence rather
+        // than a panic, because the thing it would crash is a server at boot.
+        None => return Err("no KEK is configured".to_owned()),
+    }
+    .map_err(|e| format!("the key ring could not be opened: {e}"))?;
+
+    if let Some(dir) = &config.kek_retired_dir {
+        ring.load_retired_dir(dir)
+            .map_err(|e| format!("the retired keys could not be loaded: {e}"))?;
+    }
+    Ok(ring)
+}
+
 /// One envelope, for org-level secrets — today, an `OpenID` Connect client secret.
 ///
 /// A separate ring from the vault's, and for the reason `open_vault` already gives:
@@ -261,15 +294,10 @@ fn open_sso(config: &Config) -> uops_api::sso::Sso {
 /// When no KEK is configured, or it cannot be read. Both are ordinary: a deployment
 /// without one simply cannot hold a confidential client's secret.
 fn open_envelope(config: &Config) -> Result<uops_secrets::Envelope<RustCryptoAead>, String> {
-    let id = uops_secrets::record::KeyId(config.kek_id.clone());
-    let ring = match config.kek.as_ref() {
-        Some(config::KekSource::File(path)) => KekRing::from_file(path, id),
-        Some(config::KekSource::Env(name)) => KekRing::from_env(name, id),
-        None => return Err("no KEK is configured".to_owned()),
-    }
-    .map_err(|e| format!("the key ring could not be opened: {e}"))?;
-
-    Ok(uops_secrets::Envelope::new(RustCryptoAead, ring))
+    Ok(uops_secrets::Envelope::new(
+        RustCryptoAead,
+        open_ring(config)?,
+    ))
 }
 
 /// One vault, built from the configured key ring.
@@ -284,15 +312,7 @@ fn open_envelope(config: &Config) -> Result<uops_secrets::Envelope<RustCryptoAea
 /// When the KEK cannot be read, is not 64 hex characters, or — on Unix — is in a file
 /// other local accounts can read.
 fn open_vault(config: &Config, store: &PgStore) -> Result<Vault, String> {
-    let id = uops_secrets::record::KeyId(config.kek_id.clone());
-    let ring = match config.kek.as_ref() {
-        Some(config::KekSource::File(path)) => KekRing::from_file(path, id),
-        Some(config::KekSource::Env(name)) => KekRing::from_env(name, id),
-        // Unreachable through either caller, both of which check first. A sentence rather
-        // than a panic, because the thing it would crash is a server at boot.
-        None => return Err("no KEK is configured".to_owned()),
-    }
-    .map_err(|e| format!("the key ring could not be opened: {e}"))?;
+    let ring = open_ring(config)?;
 
     Ok(LocalVault::new(
         RustCryptoAead,
@@ -300,4 +320,130 @@ fn open_vault(config: &Config, store: &PgStore) -> Result<Vault, String> {
         MemoryAccessLog::new(),
         ring,
     ))
+}
+
+/// Which keys the sealed rows need, against which keys this process holds.
+///
+/// Printed at every start, because the mistake it catches is silent otherwise: rotate the
+/// key, forget the old one, and every credential sealed under it fails with `UnknownKek`
+/// one poll at a time while the server reports healthy. Here it is one line at boot, naming
+/// the variable that fixes it — `docs/kek-rotation.md` §3.3. Returns the table so
+/// `rotate-kek` can print it before and after.
+async fn report_key_usage(
+    config: &Config,
+    store: &PgStore,
+) -> Result<Vec<uops_store_pg::kek::KekUsage>, String> {
+    let ring = open_ring(config)?;
+    let usage = store
+        .kek_usage()
+        .await
+        .map_err(|e| format!("could not count sealed rows per key: {e}"))?;
+
+    for u in &usage {
+        let id = uops_secrets::record::KeyId(u.kek_id.clone());
+        let state = if &id == ring.active_id() {
+            "active"
+        } else if ring.holds(&id) {
+            "retired — run `uops-server rotate-kek` to move these to the active key"
+        } else {
+            "MISSING — no key with this id is loaded, so these rows cannot be opened. \
+             Put it in UOPS_KEK_RETIRED_DIR as <id>.hex"
+        };
+        println!(
+            "  key {:<18} {:>6} {:<18} {state}",
+            u.kek_id, u.rows, u.table
+        );
+    }
+    if usage
+        .iter()
+        .any(|u| !ring.holds(&uops_secrets::record::KeyId(u.kek_id.clone())))
+    {
+        eprintln!(
+            "warning: sealed rows reference a key this server does not hold; those \
+             credentials and secrets will fail to open until it is supplied"
+        );
+    }
+    Ok(usage)
+}
+
+/// `uops-server rotate-kek`: move every sealed row onto the active key.
+///
+/// Device credentials through the vault, SSO client secrets through the envelope — the
+/// half nothing walked before. Neither touches ciphertext: each re-wraps a row's data key
+/// under the active KEK, conditionally, so a secret replaced mid-run is reported as
+/// superseded rather than destroyed. Prints the per-key table before and after, and exits
+/// non-zero if anything failed, because "the rotation finished" and "the rotation
+/// succeeded" are different claims and only the second permits deleting the old key.
+async fn rotate_kek() -> Result<(), Box<dyn std::error::Error>> {
+    let config = Config::from_env()?;
+    if config.kek.is_none() {
+        return Err(
+            "no KEK is configured: set UOPS_KEK_FILE (or UOPS_KEK_HEX) and UOPS_KEK_ID".into(),
+        );
+    }
+    let store = PgStore::connect(&config.postgres)
+        .await
+        .map_err(|e| format!("cannot reach PostgreSQL: {e}"))?;
+
+    println!("rotate-kek: active key is {}", config.kek_id);
+    println!("before:");
+    report_key_usage(&config, &store).await?;
+
+    // Device credentials. `rotate_kek` is synchronous over a blocking bridge, which wants a
+    // multi-threaded runtime — this binary's.
+    let vault = open_vault(&config, &store)?;
+    let creds = vault
+        .rotate_kek()
+        .map_err(|e| format!("credential rotation stopped: {e}"))?;
+    println!(
+        "credentials: {} re-wrapped, {} already current, {} superseded, {} failed",
+        creds.rewrapped, creds.already_current, creds.superseded, creds.failed
+    );
+
+    // SSO client secrets.
+    let envelope = open_envelope(&config)?;
+    let active = uops_secrets::record::KeyId(config.kek_id.clone());
+    let (mut rewrapped, mut current, mut superseded, mut failed) = (0usize, 0usize, 0usize, 0usize);
+    let secrets = store
+        .sealed_provider_secrets()
+        .await
+        .map_err(|e| format!("could not read SSO secrets: {e}"))?;
+    for (id, sealed) in secrets {
+        if sealed.kek_id == active {
+            current += 1;
+            continue;
+        }
+        let Ok(new) = envelope.rewrap(&uops_api::sso::secret_context(id), &sealed) else {
+            failed += 1;
+            continue;
+        };
+        match store
+            .replace_provider_wrapping(id, &sealed.wrapped_dek, &new)
+            .await
+        {
+            Ok(true) => rewrapped += 1,
+            Ok(false) => superseded += 1,
+            Err(_) => failed += 1,
+        }
+    }
+    println!(
+        "sso secrets: {rewrapped} re-wrapped, {current} already current, {superseded} superseded, {failed} failed"
+    );
+
+    println!("after:");
+    report_key_usage(&config, &store).await?;
+
+    let total_failed = creds.failed + failed;
+    if total_failed > 0 {
+        return Err(format!(
+            "{total_failed} row(s) could not be re-wrapped — do NOT delete any retired key; \
+             the table above shows which key they are still on"
+        )
+        .into());
+    }
+    println!(
+        "rotate-kek: done. A retired key may be deleted once the table above shows no row on it \
+         — and remove it from wherever the key is backed up too."
+    );
+    Ok(())
 }

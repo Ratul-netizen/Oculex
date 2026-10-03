@@ -39,6 +39,9 @@ pub struct Config {
     /// Where the key-encryption key comes from. See [`KekSource`].
     pub kek: KekSource,
     pub kek_id: KeyId,
+    /// Retired keys, from `UOPS_KEK_RETIRED_DIR` — every `<id>.hex` in it. Absent means
+    /// none, which is every installation that has never rotated. `docs/kek-rotation.md`.
+    pub kek_retired_dir: Option<std::path::PathBuf>,
     /// How often the fleet is re-read from `PostgreSQL`.
     pub reload_every: Duration,
     /// How many devices one tenant may contribute. A bound on the query, not a policy.
@@ -155,6 +158,10 @@ impl Config {
             clickhouse: ChConfig::from_env(),
             kek,
             kek_id: KeyId(var("UOPS_KEK_ID", "default")),
+            kek_retired_dir: std::env::var("UOPS_KEK_RETIRED_DIR")
+                .ok()
+                .filter(|v| !v.trim().is_empty())
+                .map(|v| std::path::PathBuf::from(v.trim())),
             reload_every: seconds("UOPS_POLL_RELOAD_SECS", 60)?,
             device_limit: number("UOPS_POLL_DEVICE_LIMIT", 10_000)?,
             limits: Limits {

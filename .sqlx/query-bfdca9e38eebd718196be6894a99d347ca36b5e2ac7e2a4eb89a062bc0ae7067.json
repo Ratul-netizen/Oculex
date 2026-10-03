@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE identity_provider\n               SET kek_id = $2, wrapped_dek = $3, dek_nonce = $4\n             WHERE id = $1 AND wrapped_dek = $5\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Bytea",
+        "Bytea",
+        "Bytea"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "bfdca9e38eebd718196be6894a99d347ca36b5e2ac7e2a4eb89a062bc0ae7067"
+}
