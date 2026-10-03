@@ -1100,21 +1100,32 @@ jobs:
       - name: The restore drill fails when the aggregates are allowed to double
         run: |
           set -euo pipefail
+          # --fail-with-body rather than -f. `-f` turns an HTTP error into exit 22 and
+          # discards the response, which is the part ClickHouse puts the reason in: this step
+          # failed for days with nothing in the log but "returned error: 500", and nothing to
+          # act on. The body costs nothing on success and is the whole diagnosis on failure.
           F=scripts/restore.sh
           cp "$F" "$RUNNER_TEMP/restore.bak"
           # Detach nothing: the views stay attached through the load, and every aggregate
           # is written twice — once from the backup and once by the view.
           sed -i 's/^      echo "DETACH TABLE ${view}" | ch_sql$/      true/' "$F"
-          if git diff --quiet -- "$F"; then
-            echo "::error::the mutation did not apply; this guard is no longer guarding anything"
+          # And the re-attach, which the first version of this guard left in place. A view
+          # that was never detached cannot be attached again: ClickHouse answers
+          # TABLE_ALREADY_EXISTS with an HTTP 500, restore.sh is `set -euo pipefail`, and the
+          # whole guard died with curl's exit 22 before it compared a single count. It never
+          # completed once — every earlier run failed before reaching it, and the first run
+          # that did reach it failed on its own mutation.
+          sed -i 's/^      echo "ATTACH TABLE ${view}" | ch_sql$/      true/' "$F"
+          if grep -qE 'echo "(DETACH|ATTACH) TABLE' "$F"; then
+            echo "::error::the mutation did not apply to both lines; this guard is no longer guarding anything"
             exit 1
           fi
 
           dropdb -h localhost -U uops --if-exists uops_doubled
           createdb -h localhost -U uops uops_doubled
-          curl -sS -f "$CLICKHOUSE_URL/?user=$CLICKHOUSE_USER&password=$CLICKHOUSE_PASSWORD" \
+          curl -sS --fail-with-body "$CLICKHOUSE_URL/?user=$CLICKHOUSE_USER&password=$CLICKHOUSE_PASSWORD" \
             --data-binary "DROP DATABASE IF EXISTS uops_doubled"
-          curl -sS -f "$CLICKHOUSE_URL/?user=$CLICKHOUSE_USER&password=$CLICKHOUSE_PASSWORD" \
+          curl -sS --fail-with-body "$CLICKHOUSE_URL/?user=$CLICKHOUSE_USER&password=$CLICKHOUSE_PASSWORD" \
             --data-binary "CREATE DATABASE uops_doubled"
 
           RESTORE_DATABASE_URL="postgres://uops:uops@localhost:5432/uops_doubled" \
@@ -1123,9 +1134,9 @@ jobs:
 
           cp "$RUNNER_TEMP/restore.bak" "$F"
 
-          a=$(curl -sS -f "$CLICKHOUSE_URL/?user=$CLICKHOUSE_USER&password=$CLICKHOUSE_PASSWORD" \
+          a=$(curl -sS --fail-with-body "$CLICKHOUSE_URL/?user=$CLICKHOUSE_USER&password=$CLICKHOUSE_PASSWORD" \
                 --data-binary "SELECT count() FROM ${CLICKHOUSE_DB}.logs_counts_5m")
-          b=$(curl -sS -f "$CLICKHOUSE_URL/?user=$CLICKHOUSE_USER&password=$CLICKHOUSE_PASSWORD" \
+          b=$(curl -sS --fail-with-body "$CLICKHOUSE_URL/?user=$CLICKHOUSE_USER&password=$CLICKHOUSE_PASSWORD" \
                 --data-binary "SELECT count() FROM uops_doubled.logs_counts_5m")
           if [ "$a" = "$b" ]; then
             echo "::error::leaving the materialized views attached did not double logs_counts_5m ($a vs $b); the detach is no longer what prevents it"
