@@ -51,7 +51,7 @@ import {
   type Run,
   type Runbook,
 } from "./runbooks";
-import { useShell } from "./shell";
+import { useShell, useStamp } from "./shell";
 
 /** How often a run in flight is re-read. */
 const WHILE_RUNNING = 5_000;
@@ -474,6 +474,7 @@ export function PlanPage({ id }: { id: string }) {
 
 export function RunsPage() {
   const { tenant } = useShell();
+  const t = useStamp();
 
   const runs = useQuery({
     queryKey: ["runs", tenant.tenant_id],
@@ -534,7 +535,7 @@ export function RunsPage() {
                 <td>{run.dry_run ? "Dry run" : "Real"}</td>
                 <td>{run.targets.length}</td>
                 <td className="dim">{run.reason}</td>
-                <td className="dim">{new Date(run.created_at).toLocaleString()}</td>
+                <td className="dim">{t(run.created_at)}</td>
               </tr>
             ))}
           </tbody>
@@ -546,6 +547,7 @@ export function RunsPage() {
 
 export function RunPage({ id }: { id: string }) {
   const { tenant, me } = useShell();
+  const t = useStamp();
   const queryClient = useQueryClient();
   const [problem, setProblem] = useState<string | null>(null);
 
@@ -614,7 +616,7 @@ export function RunPage({ id }: { id: string }) {
       </p>
       <p className="dim">{whatIsTrue(it, need)}</p>
       <p className="dim">
-        “{it.reason}” · started {new Date(it.created_at).toLocaleString()}
+        “{it.reason}” · started {t(it.created_at, { zone: true })}
       </p>
 
       {it.failure && (
@@ -662,7 +664,7 @@ export function RunPage({ id }: { id: string }) {
           <ul className="scene3d-links">
             {it.approvals.map((a) => (
               <li key={a.approved_by}>
-                {a.approved_by} <span className="dim">{new Date(a.at).toLocaleString()}</span>
+                {a.approved_by} <span className="dim">{t(a.at, { zone: true })}</span>
               </li>
             ))}
           </ul>

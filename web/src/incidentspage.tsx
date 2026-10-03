@@ -59,7 +59,7 @@ import {
   setSuppression,
   type Incident,
 } from "./incidents";
-import { type ShellSearch, useShell } from "./shell";
+import { type ShellSearch, useShell, useStamp } from "./shell";
 
 export function IncidentsPage() {
   const { tenant } = useShell();
@@ -253,6 +253,7 @@ function Row({
 
 function Investigation({ incident }: { incident: Incident }) {
   const { tenant } = useShell();
+  const t = useStamp();
   const queryClient = useQueryClient();
 
   const timeline = useQuery({
@@ -402,7 +403,7 @@ function Investigation({ incident }: { incident: Incident }) {
                 <tbody>
                   {moments.map((moment, i) => (
                     <tr key={`${moment.signal}-${moment.at}-${i}`}>
-                      <td className="mono">{moment.at}</td>
+                      <td className="mono">{t(moment.at, { ms: true })}</td>
                       <td>{describeSignal(moment.signal)}</td>
                       <td>{moment.text}</td>
                     </tr>

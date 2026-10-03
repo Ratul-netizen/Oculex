@@ -25,6 +25,7 @@ import { useNavigate, useSearch } from "@tanstack/react-router";
 
 import type { Me, TenantMembership } from "./api";
 import { formatContext, parseContext, type Context } from "./context";
+import { stamp, zoneLabel, type StampOptions, type Zone } from "./time";
 
 /**
  * A time range, as it appears in the URL.
@@ -102,15 +103,17 @@ export function resolveRange(range: TimeRange, now = Date.now()): { from: Date; 
 }
 
 /** For the picker's label. `now-1h` reads better than the two instants it means. */
-export function describeRange(range: TimeRange): string {
+export function describeRange(range: TimeRange, zone: Zone = "local"): string {
   const preset = PRESETS.find((p) => p.range.from === range.from && p.range.to === range.to);
   if (preset) return `Last ${preset.label}`;
 
   const resolved = resolveRange(range);
   if (!resolved) return "Invalid range";
 
-  const fmt = (d: Date) => d.toISOString().slice(0, 16).replace("T", " ");
-  return `${fmt(resolved.from)} → ${fmt(resolved.to)}`;
+  // In the zone the rest of the screen is in. This was `toISOString()` — UTC — under a
+  // header whose other times were local, so a custom range read six hours off.
+  const fmt = (d: Date) => stamp(d, zone, { seconds: false });
+  return `${fmt(resolved.from)} → ${fmt(resolved.to)} ${zoneLabel(zone, resolved.to)}`;
 }
 
 /** The search params every route carries. */
@@ -120,6 +123,8 @@ export interface ShellSearch {
   to?: string;
   /** The context, as `site:<id>` / `group:<id>` / `resource:<id>` — see `./context`. */
   ctx?: string;
+  /** `utc` to read every time in UTC; absent means the viewer's local zone. See `./time`. */
+  tz?: "utc";
 }
 
 /**
@@ -139,6 +144,9 @@ export function validateShellSearch(search: Record<string, unknown>): ShellSearc
   // one becomes "everything", and dropping it at this layer would make the address bar
   // disagree with the bar that is telling the operator what they are looking at.
   if (typeof search.ctx === "string" && search.ctx) out.ctx = search.ctx;
+  // Only `utc` means anything; local is the absence of the parameter, so a link without it
+  // opens in whoever's zone is reading it.
+  if (search.tz === "utc") out.tz = "utc";
   return out;
 }
 
@@ -164,6 +172,9 @@ interface ShellValue {
   setRange: (range: TimeRange) => void;
   context: Context;
   setContext: (context: Context) => void;
+  /** Which clock every time on screen is written in. */
+  zone: Zone;
+  setZone: (zone: Zone) => void;
 }
 
 const ShellContext = createContext<ShellValue | null>(null);
@@ -186,6 +197,7 @@ export function ShellProvider({ me, children }: { me: Me; children: React.ReactN
   }, [search.from, search.to]);
 
   const context = useMemo(() => parseContext(search.ctx), [search.ctx]);
+  const zone: Zone = search.tz === "utc" ? "utc" : "local";
 
   const setTenant = useCallback(
     (tenantId: string) => {
@@ -218,6 +230,22 @@ export function ShellProvider({ me, children }: { me: Me; children: React.ReactN
     [navigate],
   );
 
+  const setZone = useCallback(
+    (next: Zone) => {
+      void navigate({
+        to: ".",
+        // Removed rather than set to `local`, for the reason `withContext` gives: an absent
+        // key and a key with a default are different things in the address bar.
+        search: (old: ShellSearch) => {
+          const rest: ShellSearch = { ...old };
+          delete rest.tz;
+          return next === "utc" ? { ...rest, tz: "utc" as const } : rest;
+        },
+      });
+    },
+    [navigate],
+  );
+
   if (!tenant) {
     // An authenticated account with no role on any tenant. Rare, and a real state: a
     // user whose last role was revoked. Saying so beats rendering an empty shell.
@@ -232,7 +260,17 @@ export function ShellProvider({ me, children }: { me: Me; children: React.ReactN
     );
   }
 
-  const value: ShellValue = { me, tenant, setTenant, range, setRange, context, setContext };
+  const value: ShellValue = {
+    me,
+    tenant,
+    setTenant,
+    range,
+    setRange,
+    context,
+    setContext,
+    zone,
+    setZone,
+  };
   return <ShellContext.Provider value={value}>{children}</ShellContext.Provider>;
 }
 
@@ -240,4 +278,16 @@ export function useShell(): ShellValue {
   const value = useContext(ShellContext);
   if (!value) throw new Error("useShell outside ShellProvider");
   return value;
+}
+
+/**
+ * `stamp`, bound to the zone the viewer chose.
+ *
+ * Every component that writes a time uses this, so changing the zone in the header changes
+ * every time on the screen at once — which is the only way a choice like that is worth
+ * offering.
+ */
+export function useStamp(): (value: Parameters<typeof stamp>[0], options?: StampOptions) => string {
+  const { zone } = useShell();
+  return useCallback((value, options) => stamp(value, zone, options), [zone]);
 }

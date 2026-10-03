@@ -48,6 +48,7 @@ import {
   toHistogram,
 } from "./query";
 import { resolveRange, useShell } from "./shell";
+import { stamp, zoneLabel, type Zone } from "./time";
 import { AllSignals } from "./signals";
 import { SavedSearches } from "./saved";
 import { overWindow, toControls, type SavedSearch } from "./searches";
@@ -101,9 +102,12 @@ const SIDEBAR: Partial<Record<Signal, { label: string; field: Field }[]>> = {
 };
 
 /** How a ClickHouse value is best shown, from the column type the server reported. */
-function render(value: unknown, type: string): string {
+function render(value: unknown, type: string, zone: Zone): string {
   if (value === null || value === undefined) return "—";
-  if (type.startsWith("DateTime")) return String(value).replace("T", " ").replace("Z", "");
+  // In the viewer's zone, with milliseconds. This stripped the `Z` from a UTC value and
+  // showed it bare, so a log line read as local time six hours off. The zone itself is in
+  // the column header — per value it would be noise in a table of a thousand rows.
+  if (type.startsWith("DateTime")) return stamp(String(value), zone, { ms: true });
   if (type.startsWith("Map") || type.startsWith("Array")) {
     // An empty map is the common case and `{}` is noise in a table of a thousand rows.
     const text = JSON.stringify(value);
@@ -203,6 +207,7 @@ function RowDetail({
   row: unknown[];
   onClose: () => void;
 }) {
+  const { zone } = useShell();
   const columns = result.columns.map((c) => c.name);
   const resourceAt = columns.indexOf("resource_id");
   const timeAt = columns.indexOf("observed_at");
@@ -229,7 +234,7 @@ function RowDetail({
         {result.columns.map((column, i) => (
           <div key={column.name}>
             <dt>{column.name}</dt>
-            <dd className="mono">{render(row[i], column.type)}</dd>
+            <dd className="mono">{render(row[i], column.type, zone)}</dd>
           </div>
         ))}
       </dl>
@@ -258,7 +263,7 @@ function RowDetail({
 const MAX_FAILURES = 5;
 
 export function ExplorePage() {
-  const { tenant, range, setRange } = useShell();
+  const { tenant, range, setRange, zone } = useShell();
   const client = useQueryClient();
 
   const [signal, setSignal] = useState<Signal>("log");
@@ -799,6 +804,11 @@ export function ExplorePage() {
                       {order.map((at) => (
                         <th key={shown.columns[at]?.name ?? at} title={shown.columns[at]?.type}>
                           {shown.columns[at]?.name}
+                          {/* The zone once, for the whole column — per value it would be
+                              noise in a thousand rows. */}
+                          {shown.columns[at]?.type.startsWith("DateTime") && (
+                            <span className="dim"> ({zoneLabel(zone)})</span>
+                          )}
                         </th>
                       ))}
                     </tr>
@@ -818,7 +828,7 @@ export function ExplorePage() {
                       >
                         {order.map((at) => (
                           <td key={shown.columns[at]?.name ?? at} className="mono">
-                            {render(row[at], shown.columns[at]?.type ?? "")}
+                            {render(row[at], shown.columns[at]?.type ?? "", zone)}
                           </td>
                         ))}
                       </tr>

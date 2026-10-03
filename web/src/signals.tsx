@@ -29,6 +29,7 @@ import {
   message,
   runQuery,
 } from "./query";
+import { useStamp } from "./shell";
 
 /** How far either side of the row to look. */
 export const AROUND_MS = 5 * 60 * 1000;
@@ -67,10 +68,11 @@ function pick(columns: string[], row: unknown[], names: string[]): string {
     .join("  ");
 }
 
-function when(columns: string[], row: unknown[]): string {
+function when(columns: string[], row: unknown[], t: ReturnType<typeof useStamp>): string {
   const at = columns.indexOf("observed_at");
   if (at < 0) return "";
-  return String(row[at]).replace("T", " ").replace("Z", "").slice(0, 23);
+  // UTC with the `Z` stripped used to sit under a heading in local time.
+  return t(String(row[at]), { ms: true });
 }
 
 function around(resourceId: string, at: Date, signal: Signal): Query {
@@ -97,6 +99,7 @@ export function AllSignals({
   resourceId: string;
   at: Date;
 }) {
+  const t = useStamp();
   const results = useQueries({
     queries: SHOWN.map(({ signal }) => ({
       queryKey: ["signals", tenant, resourceId, at.toISOString(), signal],
@@ -111,7 +114,7 @@ export function AllSignals({
   return (
     <section className="all-signals">
       <h3>
-        Everything around {at.toLocaleTimeString()}{" "}
+        Everything around {t(at, { zone: true })}{" "}
         <span className="dim">± {AROUND_MS / 60_000} minutes</span>
       </h3>
 
@@ -164,7 +167,7 @@ export function AllSignals({
                 // The index is the key: a telemetry row has no identity of its own, and
                 // two identical rows are two real occurrences.
                 <li key={n}>
-                  <span className="mono dim">{when(columns, row)}</span>{" "}
+                  <span className="mono dim">{when(columns, row, t)}</span>{" "}
                   <span className="mono">{describe(columns, row)}</span>
                 </li>
               ))}

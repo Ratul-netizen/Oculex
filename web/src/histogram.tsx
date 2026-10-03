@@ -25,6 +25,8 @@
 import { useRef, useState } from "react";
 
 import type { ResultSet } from "./query";
+import { useShell } from "./shell";
+import { stamp, zoneLabel, type Zone } from "./time";
 import { count } from "./words";
 
 export interface Bucket {
@@ -72,7 +74,7 @@ export function toBuckets(
 }
 
 /** Axis labels: a few, evenly spaced, in the viewer's own timezone. */
-function ticks(buckets: Bucket[], count = 4): { at: Date; label: string; index: number }[] {
+function ticks(buckets: Bucket[], zone: Zone, count = 4): { at: Date; label: string; index: number }[] {
   const first = buckets[0];
   const last = buckets[buckets.length - 1];
   if (!first || !last) return [];
@@ -87,9 +89,11 @@ function ticks(buckets: Bucket[], count = 4): { at: Date; label: string; index: 
     out.push({
       at: bucket.at,
       index,
+      // The viewer's zone, twenty-four hour — the browser's locale format said "2:30 PM"
+      // here while the rows under it were in UTC. The axis carries the zone once, below.
       label: sameDay
-        ? bucket.at.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-        : bucket.at.toLocaleString([], { month: "short", day: "numeric", hour: "2-digit" }),
+        ? stamp(bucket.at, zone, { date: false, seconds: false })
+        : stamp(bucket.at, zone, { seconds: false }).slice(5),
     });
   }
   return out;
@@ -107,6 +111,7 @@ export function Histogram({
   /** A drag across the bars. Inclusive of `from`, exclusive of `to`. */
   onZoom: (from: Date, to: Date) => void;
 }) {
+  const { zone } = useShell();
   const svg = useRef<SVGSVGElement | null>(null);
   const [drag, setDrag] = useState<{ from: number; to: number } | null>(null);
 
@@ -179,7 +184,7 @@ export function Histogram({
             className="bar"
           >
             <title>
-              {b.at.toLocaleString()} — {b.count.toLocaleString()}
+              {stamp(b.at, zone, { zone: true })} — {b.count.toLocaleString()}
             </title>
           </rect>
         ))}
@@ -197,10 +202,11 @@ export function Histogram({
 
       <figcaption>
         <span className="dim">
-          {count(total, "row")} · one bar is {describeSeconds(seconds)} · drag to zoom
+          {count(total, "row")} · one bar is {describeSeconds(seconds)} · times {zoneLabel(zone)} ·
+          drag to zoom
         </span>
         <span className="ticks">
-          {ticks(buckets).map((t) => (
+          {ticks(buckets, zone).map((t) => (
             <span key={t.index}>{t.label}</span>
           ))}
         </span>

@@ -520,6 +520,13 @@ select {
   font-variant-numeric: tabular-nums;
 }
 
+/* The zone in force, beside the range it qualifies. Monospaced so `+06` and `UTC` take the
+   same width and the header does not shift when it is flipped. */
+.zone-toggle {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
 /* Only a phone shows this — see the 720 px rule. */
 .nav-toggle {
   display: none;

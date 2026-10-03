@@ -25,7 +25,7 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { message } from "./query";
-import { useShell } from "./shell";
+import { useShell, useStamp } from "./shell";
 import {
   ASSIGNMENTS,
   type Assignment,
@@ -215,6 +215,7 @@ function SubnetRow({
 
 /** What is in one range. Only addresses something is known about — a /16 is not listed. */
 function Addresses({ tenant, id }: { tenant: string; id: string }) {
+  const t = useStamp();
   const addresses = useQuery({
     queryKey: ["subnet-addresses", tenant, id],
     queryFn: () => subnetAddresses(tenant, id),
@@ -276,7 +277,7 @@ function Addresses({ tenant, id }: { tenant: string; id: string }) {
               )}
             </td>
             <td>{a.responding ? "yes" : <span className="dim">no</span>}</td>
-            <td className="dim">{a.last_seen ?? "—"}</td>
+            <td className="dim">{t(a.last_seen)}</td>
           </tr>
         ))}
       </tbody>

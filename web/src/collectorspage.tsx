@@ -33,7 +33,7 @@ import {
   tokenState,
   type Collector,
 } from "./collectors";
-import { useShell } from "./shell";
+import { useShell, useStamp } from "./shell";
 
 export function CollectorsPage() {
   const { me } = useShell();
@@ -308,6 +308,7 @@ function Tokens({
   failed: boolean;
   onChange: () => void;
 }) {
+  const stampIt = useStamp();
   const [label, setLabel] = useState("");
   const [uses, setUses] = useState("");
   const [minted, setMinted] = useState<string | null>(null);
@@ -425,7 +426,7 @@ function Tokens({
                     <td>
                       <span className={`state ${state}`}>{state}</span>
                     </td>
-                    <td title={t.created_at}>{ago(t.created_at)}</td>
+                    <td title={stampIt(t.created_at, { zone: true })}>{ago(t.created_at)}</td>
                     <td className="actions">
                       {state === "usable" && (
                         <button

@@ -18,6 +18,8 @@ import { Link } from "@tanstack/react-router";
 import { ago, order, type Alert } from "./alerting";
 import { toSeries, type Series, type Viz } from "./dashboards";
 import type { ResultSet } from "./query";
+import { useShell } from "./shell";
+import { stamp, zoneLabel } from "./time";
 
 /**
  * The colours a chart assigns to lines, in order — UI-SPEC §1.4.
@@ -63,6 +65,8 @@ export function TimeSeries({
   // genuinely the second when the viz did not set one.
   unit?: string | undefined;
 }) {
+  // The axis in the zone the header says, which `toISOString` — UTC — was not.
+  const { zone } = useShell();
   const series = toSeries(result);
   const points = series.flatMap((s) => s.points);
   if (points.length === 0) return <p className="dim">No data in this window.</p>;
@@ -119,10 +123,10 @@ export function TimeSeries({
         ))}
 
         <text x={pad.left} y={height - 4} className="axis">
-          {new Date(t0).toISOString().slice(11, 16)}
+          {stamp(t0, zone, { date: false, seconds: false })}
         </text>
         <text x={width - pad.right} y={height - 4} className="axis" textAnchor="end">
-          {new Date(t1).toISOString().slice(11, 16)}
+          {`${stamp(t1, zone, { date: false, seconds: false })} ${zoneLabel(zone)}`}
         </text>
       </svg>
 

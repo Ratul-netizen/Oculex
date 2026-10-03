@@ -16,6 +16,7 @@ import { Wordmark } from "./brand";
 import { ContextBar } from "./contextbar";
 import { CommandPalette } from "./palette";
 import { PRESETS, describeRange, useShell, type ShellSearch, type TimeRange } from "./shell";
+import { zoneLabel } from "./time";
 
 /**
  * The sidebar, grouped by the question each section answers — UI-SPEC §11.2.
@@ -143,8 +144,31 @@ function TenantSwitcher() {
   );
 }
 
+/**
+ * Which clock every time on the screen is in.
+ *
+ * Shows the zone in force — `+06` or `UTC` — rather than a word like "Local", because the
+ * offset is the thing an operator needs when comparing a timestamp here with one in a
+ * ticket from another site. One click swaps every time on the screen; see `./time`.
+ */
+function ZoneToggle() {
+  const { zone, setZone } = useShell();
+  const local = zoneLabel("local");
+  return (
+    <button
+      type="button"
+      className="quiet zone-toggle"
+      aria-label={zone === "utc" ? `Times in UTC. Show local time (${local}) instead` : `Times in local time (${local}). Show UTC instead`}
+      title={zone === "utc" ? `Times are in UTC. Click for local time (${local}).` : `Times are in your local time (${local}). Click for UTC.`}
+      onClick={() => setZone(zone === "utc" ? "local" : "utc")}
+    >
+      {zone === "utc" ? "UTC" : local}
+    </button>
+  );
+}
+
 function RangePicker() {
-  const { range, setRange } = useShell();
+  const { range, setRange, zone } = useShell();
   const [editing, setEditing] = useState(false);
 
   if (editing) {
@@ -176,7 +200,7 @@ function RangePicker() {
 
   return (
     <div className="range">
-      <span className="label">{describeRange(range)}</span>
+      <span className="label">{describeRange(range, zone)}</span>
       {/* One segmented control rather than five separate buttons: the presets are
           alternatives to each other, and drawing them apart said they were five unrelated
           actions sitting next to Sign out. */}
@@ -243,6 +267,7 @@ export function Layout() {
         <TenantSwitcher />
         <div className="spacer" />
         <RangePicker />
+        <ZoneToggle />
         {/* The name is the link to one's own account, which is where a password is
             changed. Not in the sidebar: it is not a place in the estate, it is the one
             page about the person reading the screen. */}

@@ -21,7 +21,7 @@ import { contextParams } from "./context";
 import { PathPanel } from "./pathpanel";
 import { AllSignals } from "./signals";
 import type { ShellSearch } from "./shell";
-import { resolveRange, useShell } from "./shell";
+import { resolveRange, useShell, useStamp } from "./shell";
 
 function statusColour(status: ResourceStatus): string {
   switch (status) {
@@ -50,6 +50,7 @@ function keepSearch(old: ShellSearch): ShellSearch {
 
 export function ResourcesPage() {
   const { tenant, context } = useShell();
+  const t = useStamp();
   const narrow = contextParams(context);
 
   // Keyed by tenant *and* by the context, so switching either is a different cache entry
@@ -138,7 +139,7 @@ export function ResourcesPage() {
                 <td className="dim">{r.kind}</td>
                 <td style={{ color: statusColour(r.status) }}>{r.status}</td>
                 <td className="dim">{r.vendor ?? "—"}</td>
-                <td className="mono dim">{r.last_seen.slice(0, 19).replace("T", " ")}</td>
+                <td className="mono dim">{t(r.last_seen)}</td>
               </tr>
             ))}
           </tbody>
@@ -176,6 +177,7 @@ function momentOf(range: Parameters<typeof resolveRange>[0]): Date {
 
 export function ResourcePage() {
   const { tenant, range } = useShell();
+  const t = useStamp();
   const { id } = useParams({ from: "/shell/resources/$id" });
   const queryClient = useQueryClient();
 
@@ -264,8 +266,8 @@ export function ResourcePage() {
           <Row label="OS" value={[r.os, r.os_version].filter(Boolean).join(" ") || null} />
           <Row label="Site" value={r.site_id} mono />
           <Row label="Parent" value={r.parent_id} mono />
-          <Row label="First seen" value={r.first_seen.replace("T", " ")} mono />
-          <Row label="Last seen" value={r.last_seen.replace("T", " ")} mono />
+          <Row label="First seen" value={t(r.first_seen, { zone: true })} mono />
+          <Row label="Last seen" value={t(r.last_seen, { zone: true })} mono />
         </tbody>
       </table>
 
