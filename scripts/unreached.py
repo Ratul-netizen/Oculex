@@ -25,6 +25,8 @@ defining file and from nowhere else. So a function whose only callers were unit 
 no route, binary or job. It never appeared in the output. KEK rotation is implemented,
 tested, and an operator cannot perform one — which is exactly what this script exists to
 say out loud.
+(It has since been wired into `uops-server rotate-kek`, so the self-test now uses
+`LocalVault::get_latest`, the same shape and still genuinely unreached.)
 
 **And it flagged things that were fine.** `prod += len(pat.findall(own_prod)) - 1`
 subtracted "the definition itself" on the assumption that a declaration matches `NAME(`.
@@ -213,7 +215,7 @@ def self_test() -> int:
 
     cases = [
         # The false negative: every caller is a test, in files other than the definition's.
-        ("rotate_kek", True, "called only from test modules in other files"),
+        ("get_latest", True, "called only from test modules in other files"),
         # The false positive: called by `run()` in its own file, past a generic declaration.
         ("take_one", False, "called by run() twelve lines below it"),
         # The blind spot: an axum handler, registered as a value and never called.
