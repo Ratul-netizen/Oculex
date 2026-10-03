@@ -27,7 +27,7 @@ import { contextParams } from "./context";
 import { WATCHED, arrivalsFor, countOf, describeReporting } from "./freshness";
 import { PathPanel } from "./pathpanel";
 import { runQuery } from "./query";
-import { AllSignals } from "./signals";
+import { AROUND_MS, AllSignals } from "./signals";
 import type { ShellSearch } from "./shell";
 import { describeRange, resolveRange, useShell, useStamp } from "./shell";
 
@@ -176,10 +176,17 @@ export function ResourcesPage() {
  * of that window is five minutes after the thing they came to look at.
  *
  * Falls back to now for an unreadable range, which is what the picker itself does.
+ *
+ * Except a range that ends at `now`. "Last 1h" is not a window centred on anything — it is a
+ * question about the present — and its midpoint is half an hour ago. On a seeded install a
+ * host that had reported a minute earlier showed "Nothing." under every signal, because the
+ * panel was looking at 16:41 for logs from 17:10. For a live range the panel covers the most
+ * recent stretch it can, ending now.
  */
 function momentOf(range: Parameters<typeof resolveRange>[0]): Date {
   const window = resolveRange(range);
   if (!window) return new Date();
+  if (range.to === "now") return new Date(window.to.getTime() - AROUND_MS);
   return new Date((window.from.getTime() + window.to.getTime()) / 2);
 }
 
