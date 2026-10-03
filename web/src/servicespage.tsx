@@ -22,6 +22,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 
 import { message } from "./query";
@@ -39,6 +40,28 @@ import {
   TOP_N,
 } from "./services";
 import { describeRange, resolveRange, useShell } from "./shell";
+
+/**
+ * A service's name, linking to its resource page.
+ *
+ * A service is a resource — a span's `service_id` is the id of a `kind = 'service'` row —
+ * and the resource page already gathers that resource's logs, traces and metrics around a
+ * moment. So that page is the drill-down this table was missing: it showed payments at a
+ * 1.9 s p95 and gave nowhere to click to find the slow traces. Found by touring a seeded
+ * install, 2026-10-03.
+ *
+ * An id that never resolved to a name renders as text: a link to a resource page that will
+ * say "not found" is worse than no link.
+ */
+function ServiceLink({ id, names }: { id: string; names: Map<string, string> }) {
+  const label = serviceName(id, names);
+  if (!id || !names.has(id)) return <>{label}</>;
+  return (
+    <Link to="/resources/$id" params={{ id }}>
+      {label}
+    </Link>
+  );
+}
 
 export function ServicesPage() {
   const { tenant, range } = useShell();
@@ -160,7 +183,7 @@ export function ServicesPage() {
                   const rate = errorRate(row);
                   return (
                     <tr key={row.serviceId}>
-                      <td>{serviceName(row.serviceId, naming)}</td>
+                      <td><ServiceLink id={row.serviceId} names={naming} /></td>
                       <td className="num mono">{humanCount(row.sampledRequests)}</td>
                       <td className="num mono">
                         {/* The count and the rate together. A rate alone hides that 50%
@@ -230,8 +253,8 @@ export function ServicesPage() {
                   });
                   return (
                     <tr key={`${edge.from}-${edge.to}`}>
-                      <td>{serviceName(edge.from, naming)}</td>
-                      <td>{serviceName(edge.to, naming)}</td>
+                      <td><ServiceLink id={edge.from} names={naming} /></td>
+                      <td><ServiceLink id={edge.to} names={naming} /></td>
                       <td className="num mono">{humanCount(edge.sampled_calls)}</td>
                       <td className="num mono">
                         {humanCount(edge.sampled_errors)}

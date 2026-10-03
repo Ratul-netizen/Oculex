@@ -29,7 +29,7 @@ import { useQueries, useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 
-import { ago, listAlerts, order, type Alert } from "./alerting";
+import { ago, listAlerts, listRules, order, type Alert } from "./alerting";
 import { api } from "./api";
 import { contextParams } from "./context";
 import { message, runQuery, type Query, type ResultSet } from "./query";
@@ -99,6 +99,17 @@ export function OverviewPage() {
     refetchInterval: REFRESH_MS,
     retry: false,
   });
+
+  // Whether anything *could* fire. "Nothing is firing" is true and misleading on an install
+  // with no rules: the overview of a seeded estate said it beside a log histogram with a
+  // plain red band of errors in the middle, because there was nothing to fire. Same key as
+  // the rules screen, so a rule created there clears this without a reload.
+  const rules = useQuery({
+    queryKey: ["rules", tenant.tenant_id],
+    queryFn: () => listRules(tenant.tenant_id),
+    retry: false,
+  });
+  const noRules = rules.data !== undefined && rules.data.length === 0;
 
   // ---- what is still talking ------------------------------------------------
   //
@@ -286,6 +297,12 @@ export function OverviewPage() {
                   talking === null ? "…" : talking.toLocaleString()
                 } reporting in this window.`}
           </span>
+          {noRules && (
+            <span className="estate">
+              No alert rules yet, so nothing can fire —{" "}
+              <Link to="/alerts/rules">write one</Link>.
+            </span>
+          )}
         </p>
       ) : (
         <div className="wrong">

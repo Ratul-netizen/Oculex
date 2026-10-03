@@ -1550,6 +1550,21 @@ h2 {
   font-variant-numeric: tabular-nums;
 }
 
+/* When the facts are a <dl>, as on the trace page: a label over its value. The browser
+   indents every <dd> by 40px, which left each value hanging off to the right of its label
+   — "Root" with "Complete" under nothing in particular. Found on a seeded install's trace
+   page, 2026-10-03. */
+.facts dt,
+.facts dd {
+  margin: 0;
+}
+
+.facts dd {
+  color: var(--text);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
 /* A set of sibling screens, as tabs rather than links joined by middle dots.
  *
  * "Jobs · Runs · Candidates" was three links and two pieces of punctuation pretending to
