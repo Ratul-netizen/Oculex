@@ -25,6 +25,7 @@
 import { useRef, useState } from "react";
 
 import type { ResultSet } from "./query";
+import { count } from "./words";
 
 export interface Bucket {
   /** The bucket's start. */
@@ -151,7 +152,7 @@ export function Histogram({
         viewBox={`0 0 ${width} ${HEIGHT}`}
         preserveAspectRatio="none"
         role="img"
-        aria-label={`${total.toLocaleString()} rows in ${buckets.length} buckets of ${seconds} seconds`}
+        aria-label={`${count(total, "row")} in ${count(buckets.length, "bucket")} of ${count(seconds, "second")}`}
         onPointerDown={(e) => {
           e.currentTarget.setPointerCapture(e.pointerId);
           const at = bucketAt(e.clientX);
@@ -196,7 +197,7 @@ export function Histogram({
 
       <figcaption>
         <span className="dim">
-          {total.toLocaleString()} rows · one bar is {describeSeconds(seconds)} · drag to zoom
+          {count(total, "row")} · one bar is {describeSeconds(seconds)} · drag to zoom
         </span>
         <span className="ticks">
           {ticks(buckets).map((t) => (

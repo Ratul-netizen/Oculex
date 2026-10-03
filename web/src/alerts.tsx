@@ -448,22 +448,37 @@ function NewRule({ onCreated }: { onCreated: () => Promise<void> }) {
         </select>
       </label>
 
-      <label>
-        Tell
-        <select
-          multiple
-          value={channels}
-          onChange={(e) =>
-            setChannels(Array.from(e.target.selectedOptions, (o) => o.value))
-          }
-        >
-          {(known.data ?? []).map((c) => (
-            <option key={c.id} value={c.id}>
+      {/* Checkboxes rather than `<select multiple>`. A multi-select is a listbox several rows
+          tall whatever it holds, so in this row of single-line fields it stretched the row and
+          knocked every label out of line — and with no channels it was a tall empty box with a
+          label floating over it. It is also a poor control for "any number of these": choosing
+          two needs Ctrl-click, which most people never discover. Found by screenshotting a
+          fresh install on 2026-10-03. */}
+      <fieldset className="tell">
+        <legend>Tell</legend>
+        {(known.data ?? []).length === 0 ? (
+          <span className="dim">
+            Nobody yet — <Link to="/alerts/channels">add a channel</Link>
+          </span>
+        ) : (
+          (known.data ?? []).map((c) => (
+            <label key={c.id} className="tell-option">
+              <input
+                type="checkbox"
+                checked={channels.includes(c.id)}
+                onChange={(e) =>
+                  setChannels(
+                    e.target.checked
+                      ? [...channels, c.id]
+                      : channels.filter((id) => id !== c.id),
+                  )
+                }
+              />
               {c.name}
-            </option>
-          ))}
-        </select>
-      </label>
+            </label>
+          ))
+        )}
+      </fieldset>
 
       <button type="submit" className="primary" disabled={!chosen || create.isPending}>
         {create.isPending ? "Creating…" : "Create rule"}

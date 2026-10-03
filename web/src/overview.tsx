@@ -43,6 +43,7 @@ import {
   type Arrival,
 } from "./freshness";
 import { describeRange, resolveRange, useShell } from "./shell";
+import { count } from "./words";
 
 /** How often the control-plane panels re-read — UI-SPEC §5. */
 const REFRESH_MS = 10_000;
@@ -281,9 +282,9 @@ export function OverviewPage() {
           <span className="estate">
             {total === null
               ? "Counting what is out there…"
-              : `${total.toLocaleString()} resources, ${
+              : `${count(total, "resource")}, ${
                   talking === null ? "…" : talking.toLocaleString()
-                } of them reporting in this window.`}
+                } reporting in this window.`}
           </span>
         </p>
       ) : (

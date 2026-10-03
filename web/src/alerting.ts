@@ -10,6 +10,7 @@
 
 import { request } from "./api";
 import type { Query } from "./query";
+import { count } from "./words";
 
 export type Phase = "ok" | "pending" | "firing" | "resolved";
 export type Severity = "info" | "warning" | "critical";
@@ -165,15 +166,12 @@ export function listSent(tenant: string) {
  */
 export function describeSeconds(seconds: number): string {
   if (seconds <= 0) return "immediately";
-  if (seconds % 86_400 === 0) return plural(seconds / 86_400, "day");
-  if (seconds % 3_600 === 0) return plural(seconds / 3_600, "hour");
-  if (seconds % 60 === 0) return plural(seconds / 60, "minute");
-  return plural(seconds, "second");
+  if (seconds % 86_400 === 0) return count(seconds / 86_400, "day");
+  if (seconds % 3_600 === 0) return count(seconds / 3_600, "hour");
+  if (seconds % 60 === 0) return count(seconds / 60, "minute");
+  return count(seconds, "second");
 }
 
-function plural(n: number, unit: string): string {
-  return `${n} ${unit}${n === 1 ? "" : "s"}`;
-}
 
 /**
  * What a rule says, as a sentence.

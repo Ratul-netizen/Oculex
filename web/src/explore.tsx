@@ -54,6 +54,7 @@ import { overWindow, toControls, type SavedSearch } from "./searches";
 import { POLL_MS, merge, pollTail } from "./tail";
 import { usableId } from "./trace";
 import { TraceLink } from "./tracepage";
+import { count } from "./words";
 
 const TEXT_MODES: { value: TextMode; label: string; hint: string }[] = [
   { value: "any_token", label: "any word", hint: "Uses the text index." },
@@ -698,7 +699,7 @@ export function ExplorePage() {
               ? "Paused while a row is open — nothing is being missed; the watermark is held."
               : "Following. New rows arrive at the top."}
             {" "}
-            {tail ? `${tail.rows.length.toLocaleString()} rows in view.` : "Waiting…"}
+            {tail ? `${count(tail.rows.length, "row")} in view.` : "Waiting…"}
           </p>
 
           {/* Both of these are the server's own answers about its own window, not this
@@ -771,7 +772,7 @@ export function ExplorePage() {
           <div className="rows">
             <Warnings result={shown} />
             <p className="dim">
-              {shown.rows.length.toLocaleString()} rows, read{" "}
+              {count(shown.rows.length, "row")}, read{" "}
               {shown.rows_read.toLocaleString()} from{" "}
               <span className="mono">{shown.table}</span> (
               {(shown.bytes_read / 1_048_576).toFixed(1)} MiB)

@@ -520,6 +520,11 @@ select {
   font-variant-numeric: tabular-nums;
 }
 
+/* Only a phone shows this — see the 720 px rule. */
+.nav-toggle {
+  display: none;
+}
+
 .nav {
   grid-area: nav;
   padding: 12px 8px;
@@ -566,6 +571,13 @@ select {
       "context"
       "nav"
       "content";
+    /* Five rows, sized here rather than inherited. The desktop template is three rows,
+       `var(--header) auto 1fr`, and on a phone those land on brand, header and *context* —
+       so the context bar was the row that stretched to fill the screen. It never showed
+       while the sidebar was a screenful of links pushing everything past the fold; once
+       the sections went behind a button it was a band of empty space above and below
+       "Context". Only the content row should take what is left. */
+    grid-template-rows: auto auto auto auto 1fr;
   }
 
   /* And the children have to be allowed to be narrower than their contents too, for the
@@ -598,15 +610,46 @@ select {
   .nav {
     border-right: none;
   }
+
+  /* The sections, behind a button. Shares the brand's grid cell and sits at its right
+     edge, so the mark and the menu are one row and nothing else moves. */
+  .nav-toggle {
+    display: inline-flex;
+    grid-area: brand;
+    justify-self: end;
+    align-self: center;
+    margin-right: 12px;
+  }
+
+  .nav {
+    display: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav.open {
+    display: block;
+  }
 }
 
 /* --- controls ----------------------------------------------------------- */
 
+/* Every input a person types into, whether or not it carries a `type`.
+ *
+ * This listed text, email and password only. An `<input>` with no `type` attribute is a
+ * text field to the browser and invisible to `[type="text"]`, so twenty-one of them — plus
+ * the four `type="number"` ones — fell back to the browser's own light-grey box beside a
+ * themed one. People showed it side by side: "Their name" grey, "Email" dark. Found by
+ * screenshotting a fresh install, 2026-10-03; nothing in the test suite renders CSS. */
 select,
 textarea,
+input:not([type]),
 input[type="text"],
 input[type="email"],
-input[type="password"] {
+input[type="password"],
+input[type="number"],
+input[type="search"],
+input[type="url"],
+input[type="tel"] {
   padding: 6px 9px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -857,6 +900,36 @@ td {
   margin-top: 20px;
 }
 
+/* An alert rule's channels: inline checkboxes that stay one line high in a row of
+   single-line fields, wrapping only when there are many. A fieldset because they are one
+   question with several answers, which is what a fieldset and its legend say to a screen
+   reader. */
+.tell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  font-size: var(--t-label);
+}
+
+.tell legend {
+  float: left;
+  width: 100%;
+  padding: 0;
+  margin-bottom: 4px;
+  color: var(--text-dim);
+}
+
+.tell-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+}
+
 /* --- login -------------------------------------------------------------- */
 
 .login {
@@ -868,6 +941,14 @@ td {
 .login h1 {
   font-size: 22px;
   margin-bottom: 4px;
+}
+
+/* The mark beside the name, on the one screen that is outside the shell and so has no
+   header to carry it. */
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .login form {

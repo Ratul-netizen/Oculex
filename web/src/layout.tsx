@@ -8,8 +8,8 @@
  * lives on a page is a range that resets when you leave it.
  */
 
-import { Link, Outlet, useNavigate } from "@tanstack/react-router";
-import { Fragment, useState } from "react";
+import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import { Fragment, useEffect, useState } from "react";
 
 import { api } from "./api";
 import { Wordmark } from "./brand";
@@ -203,9 +203,41 @@ export function Layout() {
   const { me } = useShell();
   const navigate = useNavigate();
 
+  // On a phone the sections are behind a button. Without it the sidebar stacked above
+  // the page and filled the whole first screen — twenty-five links before the Resources
+  // table or the Explore form appeared, on an app whose manifest says it belongs on a
+  // phone's home screen. Found by screenshotting at 390 px on 2026-10-03. On a desktop the
+  // button is not displayed and this state is never read.
+  const [navOpen, setNavOpen] = useState(false);
+  const path = useRouterState({ select: (state) => state.location.pathname });
+
+  // Choosing a destination is the end of wanting the menu. Keyed on the path, so it
+  // closes however the navigation happened — a link, the command palette, the back button.
+  useEffect(() => setNavOpen(false), [path]);
+
+  // And Escape closes it, because an open menu is a thing a keyboard has to be able to
+  // leave without walking to the button.
+  useEffect(() => {
+    if (!navOpen) return;
+    const close = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setNavOpen(false);
+    };
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, [navOpen]);
+
   return (
     <div className="shell">
       <Wordmark />
+      <button
+        type="button"
+        className="nav-toggle quiet"
+        aria-expanded={navOpen}
+        aria-controls="sections"
+        onClick={() => setNavOpen((open) => !open)}
+      >
+        {navOpen ? "Close" : "Menu"}
+      </button>
 
       <header className="header">
         <TenantSwitcher />
@@ -233,7 +265,7 @@ export function Layout() {
           else is about. §13. */}
       <ContextBar />
 
-      <nav className="nav" aria-label="Sections">
+      <nav id="sections" className={navOpen ? "nav open" : "nav"} aria-label="Sections">
         {/* Outside every group: the answer to the question you ask before you have one. */}
         <Link
           to="/"

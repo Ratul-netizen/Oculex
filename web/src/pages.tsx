@@ -11,6 +11,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { ApiError, api } from "./api";
+import { Mark, PRODUCT } from "./brand";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -44,7 +45,14 @@ export function LoginPage() {
 
   return (
     <div className="login">
-      <h1>uops</h1>
+      {/* The product's name, from the one constant that holds it. This said `uops` — the
+          codename — on the first screen anybody sees, which is the one place SPEC's branding
+          rule is most explicit about: product-facing surfaces say the product name. Found by
+          screenshotting a fresh install on 2026-10-03; the header had been right all along. */}
+      <h1 className="login-brand">
+        <Mark size={26} />
+        <span>{PRODUCT}</span>
+      </h1>
       <p className="dim">Sign in to continue.</p>
 
       {providers.length > 0 && (

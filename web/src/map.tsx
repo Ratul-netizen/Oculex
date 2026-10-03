@@ -31,6 +31,7 @@ import { Link } from "@tanstack/react-router";
 import { api, type Site, type SiteCounts } from "./api";
 import { useShell } from "./shell";
 import { WORLD_LAND } from "./world";
+import { count } from "./words";
 
 /** The viewBox the bundled outline is drawn in. */
 const WIDTH = 360;
@@ -124,7 +125,7 @@ export function MapPage() {
         className="world"
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         role="img"
-        aria-label={`${placed.length} of ${all.length} sites placed on a world map`}
+        aria-label={`${placed.length} of ${count(all.length, "site")} placed on a world map`}
       >
         <rect x={0} y={0} width={WIDTH} height={HEIGHT} className="ocean" />
         <path d={WORLD_LAND} className="land" />

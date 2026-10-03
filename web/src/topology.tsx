@@ -31,6 +31,7 @@ import { depths, layout, neighboursOf, type Placed } from "./graph";
 import { Boundary } from "./boundary";
 import { message } from "./query";
 import { useShell } from "./shell";
+import { count } from "./words";
 
 /**
  * The 3D scene, on demand.
@@ -198,7 +199,7 @@ export function TopologyPage() {
         // Never silent truncation — §14.4. An operator who cannot find a device and is
         // not told it is hidden concludes the product lost it.
         <p className="warn">
-          Showing the largest {placed.nodes.length} devices. {placed.omitted} more in{" "}
+          Showing the largest {count(placed.nodes.length, "device")}. {placed.omitted} more in{" "}
           {placed.omittedComponents} separate{" "}
           {placed.omittedComponents === 1 ? "group" : "groups"} are not drawn.
         </p>
@@ -250,7 +251,7 @@ export function TopologyPage() {
             className="topo-canvas"
             viewBox={`0 0 ${SIZE} ${SIZE}`}
             role="img"
-            aria-label={`Network topology: ${placed.nodes.length} devices, ${placed.edges.length} links`}
+            aria-label={`Network topology: ${count(placed.nodes.length, "device")}, ${count(placed.edges.length, "link")}`}
             onClick={() => setSelected(null)}
           >
             {placed.edges.map((edge) => {
