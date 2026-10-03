@@ -248,7 +248,7 @@ mod tests {
         let worst = per_second.iter().copied().max().unwrap_or(0);
         assert!(
             worst < 60,
-            "the busiest second held {worst} of 1 000 rules, which is a spike rather than              a spread"
+            "the busiest second held {worst} of 1 000 rules, which is a spike rather than a spread"
         );
         assert!(
             per_second.iter().filter(|n| **n > 0).count() > 500,
@@ -304,7 +304,7 @@ mod tests {
         assert_eq!(
             scheduler.wheel_len(),
             1,
-            "ten inserts left ten entries in the wheel, so the rule evaluates ten times              as often as it asked to"
+            "ten inserts left ten entries in the wheel, so the rule evaluates ten times as often as it asked to"
         );
 
         // Three intervals' worth of ticks: a rule on a ten-second interval comes round

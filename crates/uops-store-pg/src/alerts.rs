@@ -244,7 +244,7 @@ fn must_be_evaluable(query: &Query, condition: Condition) -> Result<()> {
         Condition::Threshold { .. } => {
             if query.aggregations.len() > 1 {
                 return Err(CoreError::Invalid(format!(
-                    "a threshold rule compares one number and this query produces {} —                      leave exactly one aggregation, or none to alert on the row count.",
+                    "a threshold rule compares one number and this query produces {} — leave exactly one aggregation, or none to alert on the row count.",
                     query.aggregations.len()
                 )));
             }
@@ -258,7 +258,7 @@ fn must_be_evaluable(query: &Query, condition: Condition) -> Result<()> {
         Condition::Absence { .. } => {
             if matches!(query.resources, uops_query::ResourceSelector::All) {
                 return Err(CoreError::Invalid(
-                    "an absence rule must name the resources it watches — a kind, a site, a                      group or a tag. Every resource in the tenant includes ones that have                      never reported, and the rule would fire for all of them."
+                    "an absence rule must name the resources it watches — a kind, a site, a group or a tag. Every resource in the tenant includes ones that have never reported, and the rule would fire for all of them."
                         .to_owned(),
                 ));
             }

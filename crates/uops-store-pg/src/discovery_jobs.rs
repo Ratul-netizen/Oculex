@@ -486,7 +486,7 @@ impl PgStore {
             // answered -- a wrong SNMPv2c community is silence, not a refusal -- so the
             // list's length multiplies the sweep's duration.
             return Err(CoreError::Invalid(format!(
-                "a discovery job may name at most {} credentials — every one of them is                  tried against every address that does not answer, so a longer list is a                  longer sweep rather than a better one. Split this into two jobs.",
+                "a discovery job may name at most {} credentials — every one of them is tried against every address that does not answer, so a longer list is a longer sweep rather than a better one. Split this into two jobs.",
                 uops_discover::MAX_CREDENTIALS
             )));
         }

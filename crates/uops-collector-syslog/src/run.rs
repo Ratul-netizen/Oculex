@@ -371,7 +371,7 @@ pub async fn serve_with_metrics(
     match batcher.await {
         Ok(stats) => {
             println!(
-                "uops-collector-syslog: {} row(s) in {} insert(s), {} retries,                  {} spilled, {} replayed, {} still on disk, {} lost",
+                "uops-collector-syslog: {} row(s) in {} insert(s), {} retries, {} spilled, {} replayed, {} still on disk, {} lost",
                 stats.rows_written,
                 stats.batches_written,
                 stats.retries,
@@ -384,7 +384,7 @@ pub async fn serve_with_metrics(
                 // Not loss, and worth distinguishing: the next start replays them. An
                 // operator reading "still on disk" should not go looking for a backup.
                 println!(
-                    "uops-collector-syslog: {} row(s) are still spilled and will be                      replayed on the next start",
+                    "uops-collector-syslog: {} row(s) are still spilled and will be replayed on the next start",
                     stats.rows_pending
                 );
             }

@@ -380,18 +380,18 @@ async fn what_the_graph_answers(
     for near in ["lb-01", "app-01", "spine-01"] {
         assert!(
             hood.within.contains_key(&role(near)),
-            "{near} is one hop from leaf-01 over a cabled link and is not in its              neighbourhood, so their alerts would never group into one incident"
+            "{near} is one hop from leaf-01 over a cabled link and is not in its neighbourhood, so their alerts would never group into one incident"
         );
     }
     assert!(
         !hood.within.contains_key(&role("core-rtr-01")),
-        "core-rtr-01 is three hops from leaf-01, past RADIUS, and grouping that far turns one          datacenter into one incident"
+        "core-rtr-01 is three hops from leaf-01, past RADIUS, and grouping that far turns one datacenter into one incident"
     );
 
     // Origin: nothing is upstream of anything, because every edge is `connected_to`.
     assert!(
         hood.upstream.is_empty(),
-        "something is upstream of leaf-01 on an estate whose only edges are `connected_to`.          Either a dependency edge arrived from somewhere, which is good and this assertion          should be relaxed, or `resource_dependencies` has started walking adjacency, which          would make a cable imply causation"
+        "something is upstream of leaf-01 on an estate whose only edges are `connected_to`. Either a dependency edge arrived from somewhere, which is good and this assertion should be relaxed, or `resource_dependencies` has started walking adjacency, which would make a cable imply causation"
     );
 
     println!(

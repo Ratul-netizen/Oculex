@@ -166,7 +166,7 @@ pub async fn resolve(
         ResourceSelector::Tagged { key, value } => {
             if key.is_empty() {
                 return Err(Error::Invalid(
-                    "a tag selector needs a key; an empty one would match every resource                      that has any tag, which is not what anybody means".into(),
+                    "a tag selector needs a key; an empty one would match every resource that has any tag, which is not what anybody means".into(),
                 ));
             }
             catalog.tagged(tenant, key, value).await?

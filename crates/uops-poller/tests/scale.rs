@@ -342,14 +342,14 @@ async fn a_thousand_agents_are_polled_within_the_budget() {
     let m = measure(0, 120).await;
 
     println!(
-        "1 000 agents, {PORTS} ports each: p95 {:?}, worst {:?},          {} polls ok, {} failed, {} out of time",
+        "1 000 agents, {PORTS} ports each: p95 {:?}, worst {:?}, {} polls ok, {} failed, {} out of time",
         m.p95, m.worst, m.ok, m.failed, m.budget
     );
 
     assert_eq!(m.failed, 0, "a healthy fleet must not fail a poll");
     assert!(
         m.ok > 3_000,
-        "four jobs per device over two 60-second cycles is several thousand polls;          {} is too few for this to have measured a fleet",
+        "four jobs per device over two 60-second cycles is several thousand polls; {} is too few for this to have measured a fleet",
         m.ok
     );
     assert!(

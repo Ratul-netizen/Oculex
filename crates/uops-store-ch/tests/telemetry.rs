@@ -106,7 +106,7 @@ fn the_fixtures_are_inside_every_retention_window() {
     let age = Utc::now() - window_start();
     assert!(
         age < Duration::days(SHORTEST_RETENTION_DAYS),
-        "the fixtures are {} days old and the shortest retention is {SHORTEST_RETENTION_DAYS};          ClickHouse will delete them on its next TTL merge, which makes every test in this          file pass or fail depending on when that merge runs",
+        "the fixtures are {} days old and the shortest retention is {SHORTEST_RETENTION_DAYS}; ClickHouse will delete them on its next TTL merge, which makes every test in this file pass or fail depending on when that merge runs",
         age.num_days()
     );
     assert!(

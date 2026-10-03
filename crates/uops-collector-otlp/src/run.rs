@@ -519,7 +519,7 @@ pub async fn serve_with_metrics(
             // `UOPS_INSECURE_COOKIES`: a deployment that has this open has it open for a
             // reason somebody can now find, and an operator who did not mean to is told.
             eprintln!(
-                "warning: {} on {} accepts telemetry from anything that can reach it.                  Whatever reaches this port writes into that tenant, as any resource it                  names. Set `require_token: true` and mint one in the interface —                  docs/packaging.md §4.2",
+                "warning: {} on {} accepts telemetry from anything that can reach it. Whatever reaches this port writes into that tenant, as any resource it names. Set `require_token: true` and mint one in the interface — docs/packaging.md §4.2",
                 bound.listener.tenant, bound.listener.bind
             );
         }

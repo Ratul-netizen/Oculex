@@ -262,7 +262,7 @@ async fn the_correlation_fixture_compiles_to_what_the_helper_does() {
 
     assert_ne!(
         built.filter, fixture.filter,
-        "if these ever become equal, the untagged-UUID hazard is gone and this test          should say something simpler"
+        "if these ever become equal, the untagged-UUID hazard is gone and this test should say something simpler"
     );
 
     let scope = TenantScope::system(TenantId::from_uuid(TENANT.parse().unwrap()));

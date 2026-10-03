@@ -390,7 +390,7 @@ mod tests {
         };
         assert!(
             ssh.runs_in_dry_run(),
-            "a dry run that runs no ssh.command step runs nothing at all — see the note              on runs_in_dry_run"
+            "a dry run that runs no ssh.command step runs nothing at all — see the note on runs_in_dry_run"
         );
 
         // And the one that must not: the author said it changes something.

@@ -385,7 +385,7 @@ mod tests {
         let parent = u32::from_str_radix(&hex[..6], 16).expect("hex");
         assert!(
             !tables().bits24.contains_key(&parent),
-            "IEEE is not supposed to list the MA-S parent prefix {} as an MA-L block;              if it now does, the most-specific-first order in `lookup` is load-bearing              rather than merely prudent, and this test should say so",
+            "IEEE is not supposed to list the MA-S parent prefix {} as an MA-L block; if it now does, the most-specific-first order in `lookup` is load-bearing rather than merely prudent, and this test should say so",
             &hex[..6]
         );
     }

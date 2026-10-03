@@ -111,7 +111,7 @@ impl QueryWarning {
                     .into()
             }
             Self::BeyondRetention { table, days } => format!(
-                "{table} keeps {days} days, and this window reaches further back;                  the result is complete only for the part that is still stored"
+                "{table} keeps {days} days, and this window reaches further back; the result is complete only for the part that is still stored"
             ),
         }
     }

@@ -235,7 +235,7 @@ async fn an_unknown_address_does_not_answer_faster_than_a_wrong_password() {
     // order of magnitude — Argon2 at 19 MiB against a database round trip.
     assert!(
         unknown * 2 >= wrong,
-        "an unknown address answered in {unknown:?} against {wrong:?} for a wrong          password — the absent-user path is short-circuiting past the verification,          which lets an attacker enumerate accounts"
+        "an unknown address answered in {unknown:?} against {wrong:?} for a wrong password — the absent-user path is short-circuiting past the verification, which lets an attacker enumerate accounts"
     );
 }
 

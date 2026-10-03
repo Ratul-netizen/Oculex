@@ -309,11 +309,11 @@ async fn deliver(
                     // these per alert, and a storm is exactly when it does.
                     let line = match one.outcome {
                         Outcome::RateLimited => format!(
-                            "alerts: channel {} is at its rate limit; notifications for {}                              are being refused",
+                            "alerts: channel {} is at its rate limit; notifications for {} are being refused",
                             one.channel, rule.name
                         ),
                         Outcome::OverBudget => format!(
-                            "alerts: this tenant has spent its notification budget for                              today; {} was not delivered",
+                            "alerts: this tenant has spent its notification budget for today; {} was not delivered",
                             rule.name
                         ),
                         _ => format!(

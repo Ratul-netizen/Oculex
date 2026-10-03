@@ -364,7 +364,7 @@ mod tests {
         () => {
             if !icmp_available() {
                 println!(
-                    "SKIPPED-ICMP: no unprivileged ICMP socket on this machine. On Linux,                      widen {} to include this process's group.",
+                    "SKIPPED-ICMP: no unprivileged ICMP socket on this machine. On Linux, widen {} to include this process's group.",
                     PING_GROUP_RANGE
                 );
                 return;

@@ -62,7 +62,7 @@ pub fn compile(q: &Query, scope: &TenantScope, resources: &ResolvedResources) ->
         return Err(Error::RollupCannotServe {
             what: "a counter rate".into(),
             table: cx.plan.table,
-            why: "a rollup stores averages of the counter, and the difference between two                   averages is not a rate; ask over a window short enough to read raw points",
+            why: "a rollup stores averages of the counter, and the difference between two averages is not a rate; ask over a window short enough to read raw points",
         });
     }
 
@@ -99,7 +99,7 @@ pub fn compile(q: &Query, scope: &TenantScope, resources: &ResolvedResources) ->
 fn rate_usage(q: &Query) -> Result<bool> {
     let refused = |where_: &'static str| {
         Err(Error::Invalid(format!(
-            "rate can only be aggregated, not used {where_};              ask for avg(rate) or max(rate) over a time bucket"
+            "rate can only be aggregated, not used {where_}; ask for avg(rate) or max(rate) over a time bucket"
         )))
     };
 

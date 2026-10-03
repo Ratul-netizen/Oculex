@@ -459,7 +459,7 @@ async fn resource_crud_and_pagination_over_ten_thousand() {
     println!("  median page {median_page:.2?}, final page {final_page:.2?}");
     assert!(
         final_page < median_page * 3,
-        "the last page of {SEEDED} cost {final_page:?} against a median page of          {median_page:?}; pagination is not keyset"
+        "the last page of {SEEDED} cost {final_page:?} against a median page of {median_page:?}; pagination is not keyset"
     );
 
     f.clean_up().await;

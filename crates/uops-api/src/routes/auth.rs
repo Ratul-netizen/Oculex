@@ -354,7 +354,7 @@ pub async fn login(
                     "auth.break_glass",
                     &profile.email,
                     Some(serde_json::json!({
-                        "reason": "this organization requires SSO; a password was accepted                                    for the named break-glass account",
+                        "reason": "this organization requires SSO; a password was accepted for the named break-glass account",
                     })),
                     None,
                 )
