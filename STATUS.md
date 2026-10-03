@@ -1,77 +1,64 @@
 # Status — pick up from here
 
-Last updated: 2026-09-28 · repo: `github.com/Ratul-netizen/Oculex`
+Last updated: 2026-10-03 · repo: `github.com/Ratul-netizen/Oculex`
 
-## Pick up here — 2026-09-28
+## Pick up here — 2026-10-03
 
-### CI went from four red jobs to one, and `gh` is why
+### CI is green — first time in this project
 
-`gh` is installed (`C:\Program Files\GitHub CLI\gh.exe`, authenticated, `repo` scope). Reading
-a run costs one command, and the logs need auth — unauthenticated `curl` gets 403.
+Run `37117008634` on `786406c` passed all seven jobs, including the workspace suite, the backup
+drill and the restore-drill guard; the publish job is skipped by design. **A red job is now a
+regression, not background.** Read a run with `gh` (installed, authenticated) before citing it:
 
 ```bash
 gh run list --limit 3
 gh run view <id> --log-failed
-gh run view --job <job-id> --log     # per-job, with step names
 ```
 
-**Run `36356729049` on `7a13b1d` was still in flight.** Six of its seven jobs had already
-passed; only `schemas · repositories · api` was running. Check it first.
+The last red step was a mutation guard that died on its own half-applied mutation and had
+never once completed — see `891e1f9`.
 
-**`docker compose up` is green**, which means SPEC §M1's criterion — *"`docker compose up`
-gives a working stack from a clean checkout on a clean machine"* — is verified rather than
-asserted, for the first time. Every fix below was found by reading a log, and each one
-uncovered the next:
+### The UI was toured in a real browser, empty and seeded
 
-| cause | commit |
-|---|---|
-| five foreign keys with no covering index | `4b19a39` |
-| `cargo fmt --all` — 265 locations, and CI's first step | `d54162d` |
-| the IEEE MAC table was gitignored, so three jobs could not compile | `43fcc2a` |
-| OpenSSL missing from the Alpine builder | `43fcc2a` |
-| one unused `cfg(unix)` import; the compose tenant slug | `e201483` |
-| a flaky event count; collectors waiting on `migrate` instead of the server | `636bdde` |
-| `/srv/spill` owned by root under a non-root user; `pg_dump` 16 against a 17 server | `148d8d9` |
-| a p95 taken from twenty samples | `7a13b1d` |
+A fresh install was logged into through the real form and every screen screenshotted at
+desktop and phone width, then again with an hour of OTLP telemetry sent through the real
+collector. Fixed from that, each checked in the browser:
 
-### The product is **Oculex** as of 2026-09-28
+* **The phone layout** — the sidebar filled the first screen; it is now behind a Menu button.
+* **Twenty-five inputs** fell back to the browser's grey default (`input` with no `type`).
+* **The login screen said "uops".** Now the mark and `PRODUCT`.
+* **Times** — twelve places, three conventions, and UTC shown without a zone beside local
+  time. One rule in `web/src/time.ts`; local by default, `?tz=utc` from a header toggle.
+* **The audit log never said when.** Both tables recorded `at` and both readers sorted by it
+  and dropped it. Now on the wire and in a When column, with a test that fails without it.
+* Services link to their resources; an OTLP host is a `host`, not a `device`; a host with no
+  availability check says "reporting — N log lines in last 1h" beside its "unknown" status.
+* "1 resources" and five siblings; the trace page's facts row; an alert-rule picker that
+  broke its row; 28 messages with runs of spaces mid-sentence.
 
-Third name, after *Aegisora* and *Veyronis*, and the second rename cost prose plus one
-constant — `PRODUCT` in `web/src/brand.tsx` — and no identifier. `uops` stays everywhere
-until trademark clearance. The repo is now `github.com/Ratul-netizen/Oculex`.
-`docs/../RENAME_AUDIT.md` §"Second rename" has the evidence, including two corrections to the
-handoff note: no deep rename is needed here, and the jurisdiction is **Bangladesh (DPDT)**,
-not India's MCA.
-
-**Do not blanket-replace a name in this repo.** `RENAME_AUDIT.md` and the naming sections of
-PLAN/README/SPEC/STATUS deliberately record the *rejected* names; a scripted replace turns
-that history into nonsense.
+The tour scripts live in the session scratchpad, not the repo: `puppeteer-core` driving the
+installed Chrome. Worth promoting into `scripts/` — nothing in CI renders CSS, and every one
+of the layout bugs above passed every test.
 
 ### Open, in order
 
-1. **Finish CI** — whatever `36356729049` says about the scale test.
-2. **KEK rotation has no operator path** — the top finding of
-   [`docs/unreached-triage.md`](./docs/unreached-triage.md) §1. Five functions, one subsystem,
-   every caller a test, and a config surface that cannot express a retired key. Agreed next
-   step is a decision document before code.
-3. **`v0.1.0` is not published.** `release-artefacts` has never run, which is why two of
-   `docs/packaging.md`'s criteria are `[~]`. Needs a published GitHub *Release*, not a tag:
-   `ci.yml` triggers on `release: types: [published]`. Now that `gh` is here,
-   `gh release create v0.1.0`.
-4. **The repository is still public.** Private starts metering Actions minutes.
-5. **`logos/Oculex cybersecurity logo 1.png`** was committed in `148d8d9` by a `git add -A`
-   that was meant to exclude it. 351 KB, spaces in the name, and labelled "cybersecurity",
-   which may belong to the sibling project. Keep, rename or drop — the UI uses the letterless
-   SVG mark in `brand.tsx`, not a PNG.
+1. **KEK rotation has no operator path** — the top finding of
+   [`docs/unreached-triage.md`](./docs/unreached-triage.md) §1. Needs a decision document
+   before code: where retired keys come from, and what triggers the re-wrap.
+2. **`v0.1.0` is not published.** CI is green, so the release job can finally be tried:
+   `gh release create v0.1.0`. Outward-facing — a public tag and a public image — so it waits
+   for the owner's go-ahead.
+3. **`logos/Oculex cybersecurity logo 1.png`** was committed by an accidental `git add -A` in
+   `148d8d9`. Keep, rename or drop; the UI uses the letterless SVG mark.
+4. **The repository is public.** Private would start metering Actions minutes.
 
-### Running the suite locally
+### Running the stack locally
 
-Both stores must be up or tests fail for reasons unrelated to the change. PostgreSQL is a
-portable install one directory above the repo (`../pgtmp/x/pgsql/bin`, which is also where
-`psql` is); ClickHouse is in the Kali guest, does not auto-start, and its IP is DHCP. The full
-`cargo test --workspace` competes with that guest for RAM and has been killed by memory
-pressure — run it with nothing else heavy open. `docs/dev-environment.md` opens with the
-pre-push list, and `cargo fmt --all --check` belongs in it.
+PostgreSQL is a portable install one directory above the repo (`../pgtmp/x/pgsql/bin`, with
+`psql` and `pg_ctl`). ClickHouse is in the Kali guest, now at `D:\Kali Linux\`; it does not
+auto-start and its IP is DHCP — it moved from `192.168.1.219` to `172.28.203.229` between two
+sessions. `vmrun getGuestIPAddress` from PowerShell, not bash. The full `cargo test` competes
+with the guest for RAM.
 
 > Read this first on a new machine. [PLAN.md](./PLAN.md) is strategy,
 > [SPEC.md](./SPEC.md) is the M0–M4 implementation spec, this is *where we are*.
